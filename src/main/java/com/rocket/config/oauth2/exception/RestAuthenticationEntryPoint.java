@@ -9,8 +9,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-import static com.rocket.config.oauth2.type.SecurityErrorCode.EXPIRED_TOKEN;
-import static com.rocket.config.oauth2.type.SecurityErrorCode.UNAUTHORIZED;
+import static com.rocket.config.oauth2.type.SecurityErrorCode.*;
 
 @Slf4j
 public class RestAuthenticationEntryPoint implements AuthenticationEntryPoint {
@@ -29,6 +28,9 @@ public class RestAuthenticationEntryPoint implements AuthenticationEntryPoint {
             return;
         } else if (exception.equals(EXPIRED_TOKEN.getCode())) {
             SecurityErrorCode errorCode = EXPIRED_TOKEN;
+            setResponse(response, errorCode);
+        } else if (exception.equals(INVALIDED.getCode())) {
+            SecurityErrorCode errorCode = INVALIDED;
             setResponse(response, errorCode);
         }
 

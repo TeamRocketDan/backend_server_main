@@ -1,11 +1,10 @@
 package com.rocket.config.oauth2.filter;
 
-import com.rocket.config.oauth2.repository.RedisAuthTokenRepository;
 import com.rocket.config.jwt.AuthToken;
 import com.rocket.config.jwt.AuthTokenProvider;
+import com.rocket.config.oauth2.repository.RedisAuthTokenRepository;
 import com.rocket.utils.CommonRequestContext;
 import com.rocket.utils.HeaderUtil;
-import io.netty.util.internal.ObjectUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;

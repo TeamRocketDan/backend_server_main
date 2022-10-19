@@ -1,8 +1,8 @@
 package com.rocket.config.jwt;
 
 import com.rocket.config.oauth2.type.SecurityErrorCode;
-import com.rocket.utils.CommonRequestContext;
 import io.jsonwebtoken.*;
+import io.jsonwebtoken.security.SecurityException;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -63,10 +63,9 @@ public class AuthToken {
             return Jwts.parser()
                     .setSigningKey(key)
                     .parseClaimsJws(token).getBody();
-        } catch (SecurityException e) {
+        } catch (SecurityException | MalformedJwtException e) {
             log.info("Invalid JWT signature.");
-        } catch (MalformedJwtException e) {
-            log.info("Invalid JWT token.");
+            request.setAttribute("exception", SecurityErrorCode.INVALIDED.getCode());
         } catch (ExpiredJwtException e) {
             if (request.getRequestURI().equals("/api/v1/auth/refresh")) {
                 return e.getClaims();

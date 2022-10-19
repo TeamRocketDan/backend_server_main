@@ -46,7 +46,6 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         private final AppProperties appProperties;
         private final UserRefreshTokenRepository userRefreshTokenRepository;
         private final OAuth2AuthorizationRequestBasedOnCookieRepository authorizationRequestRepository;
-        private final RedisAuthTokenRepository authTokenRepository;
 
         @Override
         @Transactional

@@ -57,6 +57,18 @@ public class AuthToken {
         return claims == null ? null : claims.getSubject();
     }
 
+    public long getExpiration(String token) {
+        Date expiration = Jwts.parser()
+                .setSigningKey(key)
+                .parseClaimsJws(token)
+                .getBody().getExpiration();
+
+        long now = new Date().getTime();
+
+        return expiration.getTime() - now;
+    }
+
+
     public Claims getTokenClaims(HttpServletRequest request) {
         try {
 

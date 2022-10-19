@@ -14,14 +14,17 @@ import com.rocket.utils.HeaderUtil;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 import static com.rocket.error.type.AuthErrorCode.*;
 import static com.rocket.error.type.UserErrorCode.USER_NOT_FOUND;
@@ -36,8 +39,9 @@ public class AuthController {
     private final AppProperties appProperties;
     private final AuthTokenProvider tokenProvider;
     private final UserRefreshTokenRepository userRefreshTokenRepository;
+    private final RedisTemplate redisTemplate;
 
-    private final static long THREE_DAYS_MSEC = 604800000;
+    private final static long THREE_DAYS_MSEC = 259200000;
 
     @GetMapping("/healthcheck")
     public ApiResult healthcheck() {
@@ -45,9 +49,25 @@ public class AuthController {
         return success(null);
     }
 
+    @PostMapping("/logout")
+    public ApiResult logout(HttpServletRequest request) {
+        String accessToken = HeaderUtil.getAccessToken(request);
+        AuthToken authToken = tokenProvider.convertAuthToken(accessToken);
+
+        if (!authToken.validate(request)) {
+            throw new AuthException(INVALID_ACCESS_TOKEN);
+        }
+
+        long expiration = authToken.getExpiration(authToken.getToken());
+        redisTemplate.opsForValue()
+                .set(authToken.getToken(), "logout", expiration, TimeUnit.MILLISECONDS);
+
+        return success(null);
+    }
+
     @GetMapping("/refresh")
     @Transactional
-    public ApiResult refreshToken (HttpServletRequest request, HttpServletResponse response) {
+    public ApiResult refreshToken (HttpServletRequest request) {
         String accessToken = HeaderUtil.getAccessToken(request);
         AuthToken authToken = tokenProvider.convertAuthToken(accessToken);
 

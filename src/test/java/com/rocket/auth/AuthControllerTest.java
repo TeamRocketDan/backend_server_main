@@ -22,6 +22,7 @@ import java.util.Date;
 import static com.rocket.error.type.AuthErrorCode.INVALID_ACCESS_TOKEN;
 import static com.rocket.error.type.AuthErrorCode.NOT_YET_EXPIRED_TOKEN;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -51,10 +52,6 @@ public class AuthControllerTest {
         @Nested
         @DisplayName("리프레쉬 토큰 테스트")
         class refreshToken {
-
-//                        Instant instant =
-//                                LocalDateTime.now().minusMinutes(10).atZone(ZoneId.systemDefault()).toInstant();
-//                        Date date = Date.from(instant);
 
                 @Test
                 @DisplayName("리프레쉬 토큰 실패 - 유효한 토큰이 아닐 때")
@@ -95,6 +92,29 @@ public class AuthControllerTest {
                                 .andExpect(jsonPath("$.success").value(false))
                                 .andExpect(jsonPath("$.result").isEmpty())
                                 .andExpect(jsonPath("$.errorMessage").value(NOT_YET_EXPIRED_TOKEN.getMessage()))
+                                .andDo(print());
+                }
+        }
+
+        @Nested
+        @DisplayName("로그아웃 테스트")
+        class logout {
+
+                @Test
+                @DisplayName("로그아웃 실패 - 유효한 토큰이 아닐 때")
+                public void invalidAccessToken() throws Exception {
+                        // given
+
+                        // when
+
+                        // then
+                        mockMvc.perform(post("/api/v1/auth/logout")
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .header(HttpHeaders.AUTHORIZATION, "Bearer dqwdqwdqdwwd"))
+                                .andExpect(status().isBadRequest())
+                                .andExpect(jsonPath("$.success").value(false))
+                                .andExpect(jsonPath("$.result").isEmpty())
+                                .andExpect(jsonPath("$.errorMessage").value(INVALID_ACCESS_TOKEN.getMessage()))
                                 .andDo(print());
                 }
         }

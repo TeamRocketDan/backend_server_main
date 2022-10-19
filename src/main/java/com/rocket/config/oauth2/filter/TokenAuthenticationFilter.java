@@ -7,8 +7,10 @@ import com.rocket.utils.CommonRequestContext;
 import com.rocket.utils.HeaderUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.util.ObjectUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.FilterChain;
@@ -16,13 +18,21 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 @Slf4j
 @RequiredArgsConstructor
 public class TokenAuthenticationFilter extends OncePerRequestFilter {
     private final AuthTokenProvider tokenProvider;
     private final CommonRequestContext commonRequestContext;
-    private final RedisAuthTokenRepository authTokenRepository;
+    private final RedisTemplate redisTemplate;
+
+    Set<String> urlSet = new HashSet<>(Arrays.asList(
+            "/api/v1/auth/healthcheck",
+            "/api/v1/auth/logout"
+    ));
 
     @Override
     protected void doFilterInternal(
@@ -32,16 +42,10 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
         String requestURI = request.getRequestURI();
         String tokenStr = HeaderUtil.getAccessToken(request);
         AuthToken token = tokenProvider.convertAuthToken(tokenStr);
-//        boolean exists = false;
-//        String uuid = token.getUuid(request);
-//
-//        if (uuid != null) {
-//            exists = authTokenRepository.existsById(uuid);
-//        }
 
-        // refresh token 체크 필요 만약 만료됐으면 로그아웃
-        // 이상없이 완료되면 google, facebook login 구현
-        if (!requestURI.equals("/api/v1/auth/healthcheck")) { // exists && token.validate()
+        if (!urlSet.contains(requestURI)
+            && ObjectUtils.isEmpty(redisTemplate.opsForValue().get(tokenStr))) { // !requestURI.equals("/api/v1/auth/healthcheck")) {
+
             Authentication authentication = tokenProvider.getAuthentication(token, request);
             SecurityContextHolder.getContext().setAuthentication(authentication);
 

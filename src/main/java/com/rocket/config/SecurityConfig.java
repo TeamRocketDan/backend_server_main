@@ -1,6 +1,5 @@
 package com.rocket.config;
 
-import com.rocket.config.oauth2.repository.RedisAuthTokenRepository;
 import com.rocket.config.jwt.AuthTokenProvider;
 import com.rocket.config.oauth2.entity.RoleType;
 import com.rocket.config.oauth2.exception.RestAuthenticationEntryPoint;
@@ -18,6 +17,7 @@ import com.rocket.utils.CommonRequestContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -45,7 +45,7 @@ public class SecurityConfig {
     private final CorsProperties corsProperties;
     private final AuthTokenProvider tokenProvider;
     private final CommonRequestContext commonRequestContext;
-    private final RedisAuthTokenRepository authTokenRepository;
+    private final RedisTemplate redisTemplate;
     private final CustomUserDetailsService userDetailsService;
     private final CustomOAuth2UserService oAuth2UserService;
     private final TokenAccessDeniedHandler tokenAccessDeniedHandler;
@@ -70,7 +70,7 @@ public class SecurityConfig {
         return new TokenAuthenticationFilter(
                 tokenProvider,
                 commonRequestContext,
-                authTokenRepository
+                redisTemplate
         );
     }
 
@@ -92,8 +92,7 @@ public class SecurityConfig {
                 tokenProvider,
                 appProperties,
                 userRefreshTokenRepository,
-                oAuth2AuthorizationRequestBasedOnCookieRepository(),
-                authTokenRepository
+                oAuth2AuthorizationRequestBasedOnCookieRepository()
         );
     }
 
@@ -146,7 +145,10 @@ public class SecurityConfig {
                 .and()
                 .authorizeRequests()
                 .requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
-                .antMatchers("/api/v1/auth/healthcheck").permitAll()
+                .antMatchers(
+                        "/api/v1/auth/healthcheck",
+                        "/api/v1/auth/logout"
+                ).permitAll()
                 .antMatchers("/api/**").hasAnyAuthority(RoleType.USER.getCode())
                 .antMatchers("/api/**/admin/**").hasAnyAuthority(RoleType.ADMIN.getCode())
                 .anyRequest().authenticated()

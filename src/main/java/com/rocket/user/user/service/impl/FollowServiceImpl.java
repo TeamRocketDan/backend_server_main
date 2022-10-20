@@ -11,8 +11,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import static com.rocket.error.type.UserErrorCode.USER_ALREADY_FOLLOWING;
-import static com.rocket.error.type.UserErrorCode.USER_NOT_FOUND;
+import java.util.Objects;
+
+import static com.rocket.error.type.UserErrorCode.*;
 
 @Repository
 @RequiredArgsConstructor
@@ -25,9 +26,12 @@ public class FollowServiceImpl implements FollowService {
     @Override
     @Transactional
     public void following(Long followingUserId) {
-        User follower = getUserByUuid(commonRequestContext.getUuid());
-        User following = getUserById(followingUserId);
+        User following = getUserByUuid(commonRequestContext.getUuid());
+        User follower = getUserById(followingUserId);
 
+        if (Objects.equals(follower.getId(), following.getId())) {
+            throw new UserException(USER_IMPOSSIBLE_FOLLOWING);
+        }
 
         boolean exists = followRepository.existsByFollowerAndFollowing(follower, following);
         if (exists) {
@@ -40,6 +44,24 @@ public class FollowServiceImpl implements FollowService {
                 .build();
 
         followRepository.save(follow);
+    }
+
+    @Override
+    @Transactional
+    public void unFollowing(Long followerUserId) {
+        User following = getUserByUuid(commonRequestContext.getUuid());
+        User follower = getUserById(followerUserId);
+
+        followRepository.deleteByFollowerAndFollowing(follower, following);
+    }
+
+    @Override
+    @Transactional
+    public void unFollower(Long followingUserId) {
+        User follower = getUserByUuid(commonRequestContext.getUuid());
+        User following = getUserById(followingUserId);
+
+        followRepository.deleteByFollowerAndFollowing(follower, following);
     }
 
     private User getUserByUuid(String uuid) {
@@ -62,7 +84,7 @@ public class FollowServiceImpl implements FollowService {
 
     private void validateUser(User user) {
         if (user.getDeletedAt() != null) {
-            throw new RuntimeException("이미 탈퇴한 유저입니다.");
+            throw new UserException(USER_DELETED_AT);
         }
     }
 }

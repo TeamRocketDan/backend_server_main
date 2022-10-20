@@ -3,7 +3,6 @@ package com.rocket.user.user.service;
 
 import com.rocket.config.jpa.JpaAuditingConfiguration;
 import com.rocket.error.exception.UserException;
-import com.rocket.error.type.UserErrorCode;
 import com.rocket.user.user.dto.UserMypageDto;
 import com.rocket.user.user.entity.User;
 import com.rocket.user.user.repository.UserRepository;

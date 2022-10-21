@@ -31,4 +31,20 @@ public class UserController {
         followService.following(userId);
         return success(null);
     }
+
+    @DeleteMapping("/{userId}/following")
+    public ApiResult unFollowing(
+            @PathVariable("userId") Long userId) {
+
+        followService.unFollowing(userId);
+        return success(null);
+    }
+
+    @DeleteMapping("/{userId}/follower")
+    public ApiResult unFollower(
+            @PathVariable("userId") Long userId) {
+
+        followService.unFollower(userId);
+        return success(null);
+    }
 }

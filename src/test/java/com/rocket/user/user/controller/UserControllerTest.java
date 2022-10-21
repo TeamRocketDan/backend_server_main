@@ -5,6 +5,7 @@ import com.rocket.error.handler.GlobalExceptionHandler;
 import com.rocket.error.type.UserErrorCode;
 import com.rocket.user.user.dto.UserMypageDto;
 import com.rocket.user.user.entity.User;
+import com.rocket.user.user.service.FollowService;
 import com.rocket.user.user.service.UserService;
 import com.rocket.utils.CommonRequestContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,11 +25,14 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.servlet.view.json.MappingJackson2JsonView;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 import static com.rocket.error.type.UserErrorCode.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -47,13 +51,15 @@ public class UserControllerTest {
 
     @MockBean
     private UserService userService;
+    @MockBean
+    private FollowService followService;
 
     @Autowired
     private MockMvc mockMvc;
 
     @BeforeEach
     public void setup() {
-        UserController userController = new UserController(userService);
+        UserController userController = new UserController(userService, followService);
 
         mockMvc = MockMvcBuilders
                 .standaloneSetup(userController)
@@ -152,4 +158,5 @@ public class UserControllerTest {
                     .andDo(print());
         }
     }
+
 }

@@ -34,7 +34,9 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new UserException(USER_NOT_FOUND));
     }
 
-    private User getUser(String uuid) {
+    @Override
+    @Transactional(readOnly = true)
+    public User getUser(String uuid) {
         User user = userRepository.findByUuid(uuid)
                 .orElseThrow(() -> new UserException(USER_NOT_FOUND));
 

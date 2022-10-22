@@ -1,29 +1,17 @@
-package com.rocket.user.userfeed.entity;
+package com.rocket.user.userfeed.dto;
 
-import com.rocket.config.jpa.entitiy.BaseEntity;
 import com.rocket.user.user.entity.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.*;
-import java.time.LocalDateTime;
-
 @Getter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-@Entity
-@Table(name = "feed")
-public class Feed extends BaseEntity {
+public class FeedForm {
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "feed_id")
-    private Long id; // PK
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
     private User user; // FK
 
     private String title; // 제목
@@ -36,7 +24,4 @@ public class Feed extends BaseEntity {
     private String longitude; // 경도
     private String latitude; // 위도
 
-    private LocalDateTime deletedAt; // 삭제 날짜
-
-    // TODO: CASCADE 옵션 부여하기
 }

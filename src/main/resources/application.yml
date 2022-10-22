@@ -39,7 +39,7 @@ spring:
             clientSecret: ${KAKAO_CLIENT_SECRET}
             clientAuthenticationMethod: post
             authorizationGrantType: authorization_code
-            redirectUri: ${KAKAO_REDIRECT_URI}
+            redirectUri: ${KAKAO_REDIRECT_URI_LOCAL}
             scope:
               - profile_nickname
               - profile_image
@@ -50,7 +50,7 @@ spring:
             clientSecret: ${NAVER_CLIENT_SECRET}
             clientAuthenticationMethod: post
             authorizationGrantType: authorization_code
-            redirectUri: ${NAVER_REDIRECT_URI}
+            redirectUri: ${NAVER_REDIRECT_URI_LOCAL}
             scope:
               - name
               - nickname
@@ -90,3 +90,4 @@ app:
 logging:
   level:
     org.hibernate.SQL: debug
+

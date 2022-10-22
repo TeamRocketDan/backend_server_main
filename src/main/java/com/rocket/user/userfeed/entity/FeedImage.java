@@ -1,5 +1,6 @@
 package com.rocket.user.userfeed.entity;
 
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -23,5 +24,6 @@ public class FeedImage {
     @JoinColumn(name = "feed_id")
     private Feed feed; // FK
 
-    private String imagePath; // 이미지 경로
+    @ElementCollection
+    private List<String> imagePaths;
 }

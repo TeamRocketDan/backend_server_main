@@ -3,11 +3,7 @@ package com.rocket.user.userfeed.dto;
 import lombok.Data;
 
 @Data
-public class FeedSearchCondition {
-
-    private Integer page;
-
-    private Integer size;
+public class FeedSearchCondition extends BaseSearchCondition {
 
     private String rcate1;
 

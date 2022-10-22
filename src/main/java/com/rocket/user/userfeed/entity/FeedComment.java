@@ -32,5 +32,5 @@ public class FeedComment extends BaseEntity {
     private User user; // FK
 
     private String comment; // 댓글
-    private LocalDateTime deletedAt; // 삭제날짜
+
 }

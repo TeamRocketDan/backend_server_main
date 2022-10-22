@@ -9,14 +9,20 @@ import com.rocket.error.exception.UserFeedException;
 import com.rocket.error.type.UserFeedErrorCode;
 import com.rocket.user.user.entity.User;
 import com.rocket.user.user.service.UserService;
+import com.rocket.user.userfeed.dto.BaseSearchCondition;
+import com.rocket.user.userfeed.dto.FeedCommentDto;
+import com.rocket.user.userfeed.dto.FeedDto;
 import com.rocket.user.userfeed.dto.FeedSearchCondition;
 import com.rocket.user.userfeed.entity.Feed;
-import com.rocket.user.userfeed.dto.FeedDto;
+import com.rocket.user.userfeed.entity.FeedComment;
 import com.rocket.user.userfeed.entity.FeedImage;
+import com.rocket.user.userfeed.entity.FeedLike;
+import com.rocket.user.userfeed.service.FeedCommentService;
 import com.rocket.user.userfeed.service.FeedImageService;
+import com.rocket.user.userfeed.service.FeedLikeService;
 import com.rocket.user.userfeed.service.FeedService;
+import com.rocket.user.userfeed.vo.FeedCommentResponse;
 import com.rocket.user.userfeed.vo.FeedResponse;
-import com.rocket.user.userfeed.vo.FeedResponse.FeedResponseBuilder;
 import com.rocket.user.userfeed.vo.PageResponse;
 import com.rocket.utils.ApiUtils;
 import com.rocket.utils.ApiUtils.ApiResult;
@@ -35,6 +41,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
@@ -50,10 +57,17 @@ public class FeedController {
 
     private final FeedService feedService;
 
+    private final FeedLikeService feedLikeService;
+
+    private final FeedCommentService feedCommentService;
+
     private final AuthTokenProvider tokenProvider;
 
     private final FeedImageService feedImageService;
 
+    /**
+     * front에서 보내는 방법 참고: https://jaimemin.tistory.com/2072
+     */
     @PostMapping(consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
     public ResponseEntity<ApiResult<FeedResponse>> createFeed(HttpServletRequest request
         , @RequestPart("files") MultipartFile[] files
@@ -82,17 +96,32 @@ public class FeedController {
 
         return ResponseEntity.status(HttpStatus.OK)
             .body(ApiUtils.success(PageResponse.builder()
-                    .lastPage(feeds.isLast())
-                    .firstPage(feeds.isFirst())
-                    .totalPages(feeds.getTotalPages())
-                    .totalElements(feeds.getTotalElements())
-                    .size(searchCondition.getSize())
-                    .currentPage(searchCondition.getPage())
-                    .content(feedResponses)
-                    .build()));
+                .lastPage(feeds.isLast())
+                .firstPage(feeds.isFirst())
+                .totalPages(feeds.getTotalPages())
+                .totalElements(feeds.getTotalElements())
+                .size(searchCondition.getSize())
+                .currentPage(searchCondition.getPage())
+                .content(feedResponses)
+                .build()));
     }
 
-    @PatchMapping(value = "{feedId}", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
+    @GetMapping("/{feedId}")
+    public ResponseEntity<ApiResult<FeedResponse>> getFeed(HttpServletRequest request
+        , @PathVariable("feedId") String feedId) {
+        User user = getUser(request);
+        Feed feed = feedService.getFeed(Long.valueOf(feedId));
+
+        if (feed == null) {
+            throw new UserFeedException(UserFeedErrorCode.FEED_NOT_FOUND);
+        }
+
+        return ResponseEntity.status(HttpStatus.OK)
+            .body(ApiUtils.success(getFeedResponse(user, feed)));
+    }
+
+    @PatchMapping(value = "/{feedId}", consumes = {MediaType.APPLICATION_JSON_VALUE,
+        MediaType.MULTIPART_FORM_DATA_VALUE})
     public ResponseEntity<ApiResult<FeedResponse>> updateImagePaths(HttpServletRequest request
         , @PathVariable("feedId") String feedId
         , @RequestPart("files") MultipartFile[] files) {
@@ -117,14 +146,93 @@ public class FeedController {
                 .build()));
     }
 
-    @DeleteMapping("{feedId}")
-    public ResponseEntity deleteFeed(HttpServletRequest request
+    @DeleteMapping("/{feedId}")
+    public ResponseEntity<ApiResult> deleteFeed(HttpServletRequest request
         , @PathVariable("feedId") String feedId) {
         User user = getUser(request);
         feedService.deleteFeed(Long.valueOf(user.getId()), Long.valueOf(feedId));
 
         return ResponseEntity.status(HttpStatus.OK)
-            .body(null);
+            .body(ApiUtils.success(null));
+    }
+
+    @PostMapping("/{feedId}/like")
+    public ResponseEntity<ApiResult> addFeedLike(HttpServletRequest request
+        , @PathVariable("feedId") String feedId) {
+        User user = getUser(request);
+        FeedLike feedLike = feedLikeService.createFeedLike(user, Long.valueOf(feedId));
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+            .body(ApiUtils.success(null));
+    }
+
+    @DeleteMapping("/{feedId}/like")
+    public ResponseEntity<ApiResult> deleteFeedLike(HttpServletRequest request
+        , @PathVariable("feedId") String feedId) {
+        User user = getUser(request);
+        feedLikeService.deleteFeedLike(user, Long.valueOf(feedId));
+
+        return ResponseEntity.status(HttpStatus.OK)
+            .body(ApiUtils.success(null));
+    }
+
+    @PostMapping("/{feedId}/comments")
+    public ResponseEntity<ApiResult<FeedCommentResponse>> createFeedComment(
+        HttpServletRequest request
+        , @PathVariable("feedId") String feedId
+        , @RequestBody FeedCommentDto feedCommentDto) {
+        User user = getUser(request);
+        Feed feed = feedService.getFeed(Long.valueOf(feedId));
+
+        if (feed == null) {
+            throw new UserFeedException(UserFeedErrorCode.FEED_NOT_FOUND);
+        }
+
+        FeedComment feedComment = feedCommentService.createFeedComment(user, feed, feedCommentDto);
+
+        return ResponseEntity.status(HttpStatus.OK)
+            .body(ApiUtils.success(FeedCommentResponse.builder()
+                .feedCommentId(String.valueOf(feedComment.getId()))
+                .comment(feedComment.getComment())
+                .build()));
+    }
+
+    @GetMapping("/{feedId}/comments")
+    public ResponseEntity getFeedComments(HttpServletRequest request
+        , @PathVariable("feedId") String feedId
+        , @RequestParam BaseSearchCondition searchCondition) {
+        User user = getUser(request);
+        Feed feed = feedService.getFeed(Long.valueOf(feedId));
+
+        if (feed == null) {
+            throw new UserFeedException(UserFeedErrorCode.FEED_NOT_FOUND);
+        }
+
+        Page<FeedComment> feedComments = feedCommentService.getFeedComments(
+            Long.valueOf(user.getId()), Long.valueOf(feedId), searchCondition);
+        List<FeedResponse> content = new ArrayList<>();
+
+        for (FeedComment feedComment : feedComments) {
+            content.add(FeedResponse.builder()
+                .userId(String.valueOf(user.getId()))
+                .profileImagePath(user.getProfileImage())
+                .nickname(user.getNickname())
+                .email(user.getEmail())
+                .comment(feedComment.getComment())
+                // .commentLikeCnt() TODO: feedCommentLike
+                .build());
+        }
+
+        return ResponseEntity.status(HttpStatus.OK)
+            .body(ApiUtils.success(PageResponse.builder()
+                .lastPage(feedComments.isLast())
+                .firstPage(feedComments.isFirst())
+                .totalPages(feedComments.getTotalPages())
+                .totalElements(feedComments.getTotalElements())
+                .size(searchCondition.getSize())
+                .currentPage(searchCondition.getPage())
+                .content(content)
+                .build()));
     }
 
     private FeedResponse getFeedResponse(User user, Feed feed) {

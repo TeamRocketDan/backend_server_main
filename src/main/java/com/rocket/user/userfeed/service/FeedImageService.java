@@ -16,11 +16,11 @@ public class FeedImageService {
 
     @Transactional
     public FeedImage createFeedImage(Feed feed, MultipartFile[] files) {
-        // TODO: AWS S3 Storage에 files 올리고 files 경로들을 imagePathes에 추가
+        // TODO: AWS S3 Storage에 files 올리고 files 경로들을 imagePaths에 추가
 
         return feedImageRepository.save(FeedImage.builder()
             .feed(feed)
-            // .imagePathes(<경로들>)
+            // .imagePaths(<경로들>)
             .build());
     }
 

@@ -40,4 +40,8 @@ public class FeedResponse {
     private Long feedCommentCnt;
 
     private List<String> imagePaths;
+
+    private String comment;
+
+    private Long commentLikeCnt;
 }

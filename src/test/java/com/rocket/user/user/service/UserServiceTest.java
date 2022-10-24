@@ -5,6 +5,7 @@ import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.MultiObjectDeleteException;
 import com.rocket.config.jpa.JpaAuditingConfiguration;
 import com.rocket.error.exception.UserException;
+import com.rocket.user.user.dto.UpdateNickname;
 import com.rocket.user.user.dto.UserMypageDto;
 import com.rocket.user.user.entity.User;
 import com.rocket.user.user.repository.UserRepository;
@@ -31,8 +32,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import static com.rocket.error.type.UserErrorCode.USER_DELETED_AT;
-import static com.rocket.error.type.UserErrorCode.USER_NOT_FOUND;
+import static com.rocket.error.type.UserErrorCode.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
@@ -249,6 +249,103 @@ public class UserServiceTest {
 
             // then
             assertTrue(amazonS3Exception.getMessage().contains("이미지 업로드 실패"));
+        }
+    }
+
+    @Nested
+    @DisplayName("닉네임")
+    public class nickname {
+        User user = User.builder()
+                .id(1L)
+                .username("한규빈")
+                .email("rbsks147@naver.com")
+                .uuid("uuid")
+                .profileImage("https://test.com/users/1/image")
+                .deletedAt(null)
+                .build();
+
+        User deleteUser = User.builder()
+                .id(1L)
+                .username("한규빈")
+                .email("rbsks147@naver.com")
+                .uuid("uuid")
+                .profileImage("https://test.com/users/1/image")
+                .deletedAt(LocalDateTime.now())
+                .build();
+
+        @Test
+        @DisplayName("닉네임 수정 성공")
+        public void success_updateNickname() throws Exception {
+            // given
+            given(commonRequestContext.getUuid())
+                    .willReturn("rbsks147@naver.com");
+            given(userRepository.findByUuid(anyString()))
+                    .willReturn(Optional.of(user));
+            given(userRepository.existsByNickname(anyString()))
+                    .willReturn(false);
+            UpdateNickname updateNickname = new UpdateNickname("nickname");
+
+            // when
+            String nickname = userService.updateNickname(updateNickname);
+
+            // then
+            assertEquals(updateNickname.getNickname(), nickname);
+        }
+
+        @Test
+        @DisplayName("닉네임 수정 실패 - 사용자를 찾을 수 없습니다.")
+        public void fail_updateNickname_01() throws Exception {
+            // given
+            given(commonRequestContext.getUuid())
+                    .willReturn("");
+            given(userRepository.findByUuid(anyString()))
+                    .willReturn(Optional.empty());
+            UpdateNickname updateNickname = new UpdateNickname("nickname");
+
+            // when
+            UserException userException = assertThrows(UserException.class,
+                    () -> userService.updateNickname(updateNickname));
+
+            // then
+            assertEquals(userException.getErrorCode(), USER_NOT_FOUND);
+        }
+
+        @Test
+        @DisplayName("닉네임 수정 실패 - 이미 탈퇴한 회원입니다.")
+        public void fail_updateNickname_02() throws Exception {
+            // given
+            given(commonRequestContext.getUuid())
+                    .willReturn("rbsks147@naver.com");
+            given(userRepository.findByUuid(anyString()))
+                    .willReturn(Optional.of(deleteUser));
+            UpdateNickname updateNickname = new UpdateNickname("nickname");
+
+            // when
+            UserException userException = assertThrows(UserException.class,
+                    () -> userService.updateNickname(updateNickname));
+
+            // then
+            assertEquals(userException.getErrorCode(), USER_DELETED_AT);
+        }
+
+        @Test
+        @DisplayName("닉네임 수정 실패 - 이미 등록된 닉네임입니다.")
+        public void fail_updateNickname_03() throws Exception {
+            // given
+            given(commonRequestContext.getUuid())
+                    .willReturn("rbsks147@naver.com");
+            given(userRepository.findByUuid(anyString()))
+                    .willReturn(Optional.of(user));
+            given(userRepository.existsByNickname(anyString()))
+                    .willReturn(true);
+            UpdateNickname updateNickname = new UpdateNickname("nickname");
+
+            // when
+            UserException userException = assertThrows(UserException.class,
+                    () -> userService.updateNickname(updateNickname));
+
+            // then
+            assertEquals(userException.getErrorCode(), USER_EXISTS_NICKNAME);
         }
     }
 }

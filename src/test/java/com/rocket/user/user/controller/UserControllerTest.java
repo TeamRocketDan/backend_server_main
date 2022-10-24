@@ -4,6 +4,7 @@ import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.rocket.error.exception.UserException;
 import com.rocket.error.handler.GlobalExceptionHandler;
 import com.rocket.error.type.UserErrorCode;
+import com.rocket.user.user.dto.UpdateNickname;
 import com.rocket.user.user.dto.UserMypageDto;
 import com.rocket.user.user.entity.User;
 import com.rocket.user.user.service.FollowService;
@@ -27,13 +28,16 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.view.json.MappingJackson2JsonView;
 
+import javax.validation.ConstraintViolation;
+import javax.validation.Validation;
+import javax.validation.Validator;
+import javax.validation.ValidatorFactory;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static com.rocket.error.type.UserErrorCode.*;
+import static com.rocket.utils.JsonUtils.toJson;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.*;
@@ -63,6 +67,9 @@ public class UserControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
+    private static ValidatorFactory factory;
+    private static Validator validator;
+
     @BeforeEach
     public void setup() {
         UserController userController = new UserController(userService, followService);
@@ -79,6 +86,9 @@ public class UserControllerTest {
                         ((viewName, locale) -> new MappingJackson2JsonView())
                 )
                 .build();
+
+        factory = Validation.buildDefaultValidatorFactory();
+        validator = factory.getValidator();
     }
 
     @Nested
@@ -284,6 +294,152 @@ public class UserControllerTest {
                     .andExpect(status().isInternalServerError())
                     .andExpect(jsonPath("$.success").value(false))
                     .andExpect(jsonPath("$.result").isEmpty())
+                    .andDo(print());
+        }
+    }
+
+    @Nested
+    @DisplayName("닉네임")
+    public class nickname {
+        User user = User.builder()
+                .id(1L)
+                .username("한규빈")
+                .email("rbsks147@naver.com")
+                .uuid("uuid")
+                .profileImage("https://test.com/users/1/image")
+                .deletedAt(null)
+                .build();
+
+        User deleteUser = User.builder()
+                .id(1L)
+                .username("한규빈")
+                .email("rbsks147@naver.com")
+                .uuid("uuid")
+                .profileImage("https://test.com/users/1/image")
+                .deletedAt(LocalDateTime.now())
+                .build();
+
+        @Test
+        @DisplayName("닉네임 파라미터 검증")
+        public void validate() throws Exception {
+            // given
+            List<String> errors = new ArrayList<>(List.of(
+                    "닉네임은 필수 입력 사항입니다."
+            ));
+
+            UpdateNickname updateNickname = new UpdateNickname();
+
+            // when
+            Set<ConstraintViolation<UpdateNickname>> violations =
+                    validator.validate(updateNickname);
+
+            // then
+            violations.forEach(
+                    error -> assertThat(error.getMessage()).isIn(errors)
+            );
+        }
+
+        @Test
+        @DisplayName("닉네임 수정 성공")
+        public void success_updateNickname() throws Exception {
+            // given
+            given(userService.updateNickname(any()))
+                    .willReturn("nickname");
+
+            // when
+
+            // then
+            mockMvc.perform(patch("/api/v1/users/nickname")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(
+                            toJson(
+                                    new HashMap<>() {{
+                                        put("nickname", "nickname");
+                                    }}
+                            )
+                    ))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.result.nickname").value("nickname"))
+                    .andDo(print());
+        }
+
+        @Test
+        @DisplayName("닉네임 수정 실패 - 사용자를 찾을 수 없습니다.")
+        public void fail_updateNickname_01() throws Exception {
+            // given
+            doThrow(new UserException(USER_NOT_FOUND)).when(userService)
+                            .updateNickname(any());
+
+            // when
+
+            // then
+            mockMvc.perform(patch("/api/v1/users/nickname")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(
+                                    toJson(
+                                            new HashMap<>() {{
+                                                put("nickname", "nickname");
+                                            }}
+                                    )
+                            ))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.success").value(false))
+                    .andExpect(jsonPath("$.result").isEmpty())
+                    .andExpect(jsonPath("$.errorMessage").value(USER_NOT_FOUND.getMessage()))
+                    .andDo(print());
+
+        }
+
+        @Test
+        @DisplayName("닉네임 수정 실패 - 이미 탈퇴한 회원입니다.")
+        public void fail_updateNickname_02() throws Exception {
+            // given
+            doThrow(new UserException(USER_DELETED_AT)).when(userService)
+                    .updateNickname(any());
+
+            // when
+
+            // then
+            mockMvc.perform(patch("/api/v1/users/nickname")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(
+                                    toJson(
+                                            new HashMap<>() {{
+                                                put("nickname", "nickname");
+                                            }}
+                                    )
+                            ))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.success").value(false))
+                    .andExpect(jsonPath("$.result").isEmpty())
+                    .andExpect(jsonPath("$.errorMessage").value(USER_DELETED_AT.getMessage()))
+                    .andDo(print());
+        }
+
+        @Test
+        @DisplayName("닉네임 수정 실패 - 이미 등록된 닉네임입니다.")
+        public void fail_updateNickname_03() throws Exception {
+            // given
+            doThrow(new UserException(USER_EXISTS_NICKNAME)).when(userService)
+                    .updateNickname(any());
+
+            // when
+
+            // then
+            mockMvc.perform(patch("/api/v1/users/nickname")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(
+                                    toJson(
+                                            new HashMap<>() {{
+                                                put("nickname", "nickname");
+                                            }}
+                                    )
+                            ))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.success").value(false))
+                    .andExpect(jsonPath("$.result").isEmpty())
+                    .andExpect(jsonPath("$.errorMessage").value(USER_EXISTS_NICKNAME.getMessage()))
                     .andDo(print());
         }
     }

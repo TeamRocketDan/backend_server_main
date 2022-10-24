@@ -2,11 +2,13 @@ package com.rocket.user.user.controller;
 
 import com.rocket.error.exception.UserException;
 import com.rocket.error.type.UserErrorCode;
+import com.rocket.user.user.dto.UpdateNickname;
 import com.rocket.user.user.service.FollowService;
 import com.rocket.user.user.service.UserService;
 import com.rocket.utils.ApiUtils.ApiResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -65,5 +67,15 @@ public class UserController {
 
         followService.unFollower(userId);
         return success(null);
+    }
+
+    @PatchMapping("/nickname")
+    public ApiResult updateNickname(@RequestBody @Validated UpdateNickname updateNickname) {
+
+        return success(
+                new HashMap<>() {{
+                    put("nickname", userService.updateNickname(updateNickname));
+                }}
+        );
     }
 }

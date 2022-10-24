@@ -1,6 +1,8 @@
 package com.rocket.user.user.service;
 
 
+import com.amazonaws.services.s3.model.AmazonS3Exception;
+import com.amazonaws.services.s3.model.MultiObjectDeleteException;
 import com.rocket.config.jpa.JpaAuditingConfiguration;
 import com.rocket.error.exception.UserException;
 import com.rocket.user.user.dto.UserMypageDto;
@@ -8,7 +10,9 @@ import com.rocket.user.user.entity.User;
 import com.rocket.user.user.repository.UserRepository;
 import com.rocket.user.user.repository.query.UserQueryRepository;
 import com.rocket.user.user.service.impl.UserServiceImpl;
+import com.rocket.utils.AwsS3Provider;
 import com.rocket.utils.CommonRequestContext;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -17,16 +21,20 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.annotation.Import;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 import static com.rocket.error.type.UserErrorCode.USER_DELETED_AT;
 import static com.rocket.error.type.UserErrorCode.USER_NOT_FOUND;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 
 @Import({JpaAuditingConfiguration.class})
@@ -39,9 +47,16 @@ public class UserServiceTest {
     private UserQueryRepository userQueryRepository;
     @Mock
     private CommonRequestContext commonRequestContext;
+    @Mock
+    private AwsS3Provider awsS3Provider;
 
     @InjectMocks
     private UserServiceImpl userService;
+
+    @BeforeEach
+    public void setup() {
+        ReflectionTestUtils.setField(userService, "BASE_URL", "https://test.com/");
+    }
 
     @Nested
     @DisplayName("마이 페이지")
@@ -125,6 +140,115 @@ public class UserServiceTest {
 
             // then
             assertEquals(userException.getErrorCode(), USER_DELETED_AT);
+        }
+    }
+
+    @Nested
+    @DisplayName("프로필 이미지")
+    public class profile {
+        User user = User.builder()
+                .id(1L)
+                .username("한규빈")
+                .email("rbsks147@naver.com")
+                .uuid("uuid")
+                .profileImage("https://test.com/users/1/image")
+                .deletedAt(null)
+                .build();
+
+        List<MultipartFile> multipartFiles = new ArrayList<>(
+                Arrays.asList(
+                        new MockMultipartFile(
+                        "multipartFiles",
+                        "imagefile.jpeg",
+                        "image/jpeg",
+                        "<<jpeg data>>".getBytes()
+                        )
+                )
+        );
+
+        List<String> images = new ArrayList<>(
+                Arrays.asList(
+                        "updateImage"
+                )
+        );
+
+        @Test
+        @DisplayName("프로필 이미지 수정 성공")
+        public void success_updateProfile() throws Exception {
+            // given
+            given(commonRequestContext.getUuid())
+                    .willReturn("rbsks147@naver.com");
+            given(userRepository.findByUuid(anyString()))
+                    .willReturn(Optional.of(user));
+            given(awsS3Provider.generatePath(anyString(), anyLong()))
+                    .willReturn("users/1/");
+            given(awsS3Provider.uploadFile(anyList(), anyString()))
+                    .willReturn(images);
+
+            // when
+            String updateProfile = userService.updateProfile(multipartFiles);
+
+            // then
+            assertEquals(updateProfile, images.get(0));
+        }
+
+        @Test
+        @DisplayName("프로필 이미지 수정 실패 - 사용자를 찾을 수 없습니다.")
+        public void fail_updateProfile_01() throws Exception {
+            // given
+            given(commonRequestContext.getUuid())
+                    .willReturn("");
+            given(userRepository.findByUuid(anyString()))
+                    .willReturn(Optional.empty());
+
+            // when
+            UserException userException = assertThrows(UserException.class,
+                    () -> userService.updateProfile(multipartFiles));
+
+            // then
+            assertEquals(userException.getErrorCode(), USER_NOT_FOUND);
+        }
+
+        @Test
+        @DisplayName("프로필 이미지 수정 실패 - 기존 이미지 삭제 실패")
+        public void fail_updateProfile_02() throws Exception {
+            // given
+            given(commonRequestContext.getUuid())
+                    .willReturn("rbsks147@naver.com");
+            given(userRepository.findByUuid(anyString()))
+                    .willReturn(Optional.of(user));
+            given(awsS3Provider.deleteFile(anyList()))
+                    .willThrow(new AmazonS3Exception("이미지 삭제 실패"));
+
+            // when
+            AmazonS3Exception amazonS3Exception =
+                    assertThrows(AmazonS3Exception.class,
+                    () -> userService.updateProfile(multipartFiles));
+
+            // then
+            assertTrue(amazonS3Exception.getMessage().contains("이미지 삭제 실패"));
+        }
+
+        @Test
+        @DisplayName("프로필 이미지 수정 실패 - 이미지 업로드 실패")
+        public void fail_updateProfile_03() throws Exception {
+            // given
+            given(commonRequestContext.getUuid())
+                    .willReturn("rbsks147@naver.com");
+            given(userRepository.findByUuid(anyString()))
+                    .willReturn(Optional.of(user));
+            given(awsS3Provider.generatePath(anyString(), anyLong()))
+                    .willReturn("users/1/");
+            given(awsS3Provider.uploadFile(anyList(), anyString()))
+                    .willThrow(new AmazonS3Exception("이미지 업로드 실패"));
+
+            // when
+            AmazonS3Exception amazonS3Exception =
+                    assertThrows(AmazonS3Exception.class,
+                            () -> userService.updateProfile(multipartFiles));
+
+            // then
+            assertTrue(amazonS3Exception.getMessage().contains("이미지 업로드 실패"));
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.rocket.user.user.controller;
 
+import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.rocket.error.exception.UserException;
 import com.rocket.error.handler.GlobalExceptionHandler;
 import com.rocket.error.type.UserErrorCode;
@@ -19,12 +20,17 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.view.json.MappingJackson2JsonView;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 import static com.rocket.error.type.UserErrorCode.*;
@@ -112,7 +118,7 @@ public class UserControllerTest {
             // when
 
             // then
-            mockMvc.perform(get("/api/v1/user/mypage")
+            mockMvc.perform(get("/api/v1/users/mypage")
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
@@ -130,7 +136,7 @@ public class UserControllerTest {
             // when
 
             // then
-            mockMvc.perform(get("/api/v1/user/mypage")
+            mockMvc.perform(get("/api/v1/users/mypage")
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.success").value(false))
@@ -140,7 +146,7 @@ public class UserControllerTest {
         }
 
         @Test
-        @DisplayName("마이 페이지 실패 - 사용자를 찾을 수 없습니다.")
+        @DisplayName("마이 페이지 실패 - 이미 탈퇴한 사용자 입니다.")
         public void fail_mypage_02() throws Exception {
             // given
             doThrow(new UserException(USER_DELETED_AT)).when(userService)
@@ -149,7 +155,7 @@ public class UserControllerTest {
             // when
 
             // then
-            mockMvc.perform(get("/api/v1/user/mypage")
+            mockMvc.perform(get("/api/v1/users/mypage")
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.success").value(false))
@@ -159,4 +165,126 @@ public class UserControllerTest {
         }
     }
 
+    @Nested
+    @DisplayName("프로필 이미지")
+    public class profile {
+        User user = User.builder()
+                .id(1L)
+                .username("한규빈")
+                .email("rbsks147@naver.com")
+                .uuid("uuid")
+                .profileImage("https://test.com/users/1/image")
+                .deletedAt(null)
+                .build();
+
+        List<String> images = new ArrayList<>(
+                Arrays.asList(
+                        "updateImage"
+                )
+        );
+
+        List<MockMultipartFile> multipartFiles = new ArrayList<>(
+                Arrays.asList(
+                        new MockMultipartFile(
+                                "multipartFiles",
+                                "imagefile.jpeg",
+                                "image/jpeg",
+                                "<<jpeg data>>".getBytes()
+                        )
+                )
+        );
+
+        @Test
+        @DisplayName("프로필 이미지 수정 성공")
+        public void success_updateProfile() throws Exception {
+            // given
+            given(userService.updateProfile(anyList()))
+                    .willReturn(images.get(0));
+
+            // when
+
+            // then
+            mockMvc.perform(multipart("/api/v1/users/profileImage")
+                                    .file(multipartFiles.get(0))
+                                    .with(request -> {
+                                        request.setMethod("PATCH");
+                                        return  request;
+                                    })
+                    )
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.result.profileImagePath").value(images.get(0)))
+                    .andDo(print());
+        }
+
+        @Test
+        @DisplayName("프로필 이미지 수정 실패 - 사용자를 찾을 수 없습니다.")
+        public void fail_updateProfile_01() throws Exception {
+            // given
+           doThrow(new UserException(USER_NOT_FOUND)).when(userService)
+                           .updateProfile(anyList());
+
+            // when
+
+            // then
+            mockMvc.perform(multipart("/api/v1/users/profileImage")
+                            .file(multipartFiles.get(0))
+                            .with(request -> {
+                                request.setMethod("PATCH");
+                                return  request;
+                            })
+                    )
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.success").value(false))
+                    .andExpect(jsonPath("$.result").isEmpty())
+                    .andExpect(jsonPath("$.errorMessage").value(USER_NOT_FOUND.getMessage()))
+                    .andDo(print());
+        }
+
+        @Test
+        @DisplayName("프로필 이미지 수정 실패 - 기존 이미지 삭제 실패")
+        public void fail_updateProfile_02() throws Exception {
+            // given
+            doThrow(new AmazonS3Exception("이미지 삭제 실패")).when(userService)
+                    .updateProfile(anyList());
+
+            // when
+
+            // then
+            mockMvc.perform(multipart("/api/v1/users/profileImage")
+                            .file(multipartFiles.get(0))
+                            .with(request -> {
+                                request.setMethod("PATCH");
+                                return  request;
+                            })
+                    )
+                    .andExpect(status().isInternalServerError())
+                    .andExpect(jsonPath("$.success").value(false))
+                    .andExpect(jsonPath("$.result").isEmpty())
+                    .andDo(print());
+        }
+
+        @Test
+        @DisplayName("프로필 이미지 수정 실패 - 이미지 업로드 실패")
+        public void fail_updateProfile_03() throws Exception {
+            // given
+            doThrow(new AmazonS3Exception("이미지 업로드 실패")).when(userService)
+                    .updateProfile(anyList());
+
+            // when
+
+            // then
+            mockMvc.perform(multipart("/api/v1/users/profileImage")
+                            .file(multipartFiles.get(0))
+                            .with(request -> {
+                                request.setMethod("PATCH");
+                                return  request;
+                            })
+                    )
+                    .andExpect(status().isInternalServerError())
+                    .andExpect(jsonPath("$.success").value(false))
+                    .andExpect(jsonPath("$.result").isEmpty())
+                    .andDo(print());
+        }
+    }
 }

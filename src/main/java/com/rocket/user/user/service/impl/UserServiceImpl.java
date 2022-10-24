@@ -1,6 +1,7 @@
 package com.rocket.user.user.service.impl;
 
 import com.rocket.error.exception.UserException;
+import com.rocket.user.user.dto.UpdateNickname;
 import com.rocket.user.user.dto.UserMypageDto;
 import com.rocket.user.user.entity.User;
 import com.rocket.user.user.repository.UserRepository;
@@ -55,6 +56,21 @@ public class UserServiceImpl implements UserService {
         user.updateProfileImageUrl(files.get(0));
 
         return files.get(0);
+    }
+
+    @Override
+    @Transactional
+    public String updateNickname(UpdateNickname updateNickname) {
+        User user = getUser(commonRequestContext.getUuid());
+
+        boolean exists = userRepository.existsByNickname(updateNickname.getNickname());
+        if (exists) {
+            throw new UserException(USER_EXISTS_NICKNAME);
+        }
+
+        user.updateNickname(updateNickname.getNickname());
+
+        return user.getNickname();
     }
 
     private void deleteProfileImage(User user) {

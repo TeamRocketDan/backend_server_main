@@ -41,7 +41,6 @@ spring:
             authorizationGrantType: authorization_code
             redirectUri: ${KAKAO_REDIRECT_URI}
             scope:
-              - profile_nickname
               - profile_image
               - account_email
             clientName: Kakao
@@ -53,7 +52,6 @@ spring:
             redirectUri: ${NAVER_REDIRECT_URI}
             scope:
               - name
-              - nickname
               - email
               - profile_image
             clientName: Naver

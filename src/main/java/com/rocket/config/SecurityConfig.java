@@ -146,11 +146,15 @@ public class SecurityConfig {
                 .authorizeRequests()
                 .requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
                 .antMatchers(
+                        "/api/v1/areas/**",
                         "/api/v1/auth/healthcheck",
                         "/api/v1/auth/logout"
                 ).permitAll()
-                .antMatchers("/api/**").hasAnyAuthority(RoleType.USER.getCode())
-                .antMatchers("/api/**/admin/**").hasAnyAuthority(RoleType.ADMIN.getCode())
+                .antMatchers(
+                        "/api/v1/users/**",
+                        "/api/v1/feeds/**"
+                ).hasAnyAuthority(RoleType.USER.getCode())
+//                .antMatchers("/api/**/admin/**").hasAnyAuthority(RoleType.ADMIN.getCode())
                 .anyRequest().authenticated()
                 .and()
                 .oauth2Login()

@@ -8,6 +8,7 @@ import com.rocket.user.user.service.UserService;
 import com.rocket.utils.ApiUtils.ApiResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -77,5 +78,17 @@ public class UserController {
                     put("nickname", userService.updateNickname(updateNickname));
                 }}
         );
+    }
+
+    @GetMapping("/follower")
+    public ApiResult followerList (Pageable pageable) {
+
+        return success(followService.followerList(pageable));
+    }
+
+    @GetMapping("/following")
+    public ApiResult followingList (Pageable pageable) {
+
+        return success(followService.followingList(pageable));
     }
 }

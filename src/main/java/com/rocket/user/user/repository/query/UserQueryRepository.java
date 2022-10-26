@@ -20,26 +20,26 @@ public class UserQueryRepository {
 
     public Optional<UserMypageDto> findById(Long userId) {
         return Optional.ofNullable(jpaQueryFactory
-                .select(
-                        new QUserMypageDto(
-                                user.id,
-                                user.username,
-                                user.email,
-                                user.nickname.coalesce(""),
-                                select(follow.count())
-                                        .from(follow)
-                                        .where(follow.follower.id.eq(user.id)),
-                                select(follow.count())
-                                        .from(follow)
-                                        .where(follow.following.id.eq(user.id))
-                        )
-        )
-                .from(user)
-                .where(
-                        user.id.eq(userId),
-                        user.deletedAt.isNull()
+            .select(
+                new QUserMypageDto(
+                    user.id,
+                    user.username,
+                    user.email,
+                    user.nickname.coalesce(""),
+                    select(follow.count())
+                        .from(follow)
+                        .where(follow.follower.id.eq(user.id)),
+                    select(follow.count())
+                        .from(follow)
+                        .where(follow.following.id.eq(user.id))
                 )
-                .fetchOne()
+            )
+            .from(user)
+            .where(
+                user.id.eq(userId),
+                user.deletedAt.isNull()
+            )
+            .fetchOne()
         );
     }
 }

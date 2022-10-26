@@ -43,7 +43,7 @@ public class UserServiceImpl implements UserService {
         User user = getUser(commonRequestContext.getUuid());
 
         return userQueryRepository.findById(user.getId())
-                .orElseThrow(() -> new UserException(USER_NOT_FOUND));
+            .orElseThrow(() -> new UserException(USER_NOT_FOUND));
     }
 
     @Override
@@ -84,7 +84,7 @@ public class UserServiceImpl implements UserService {
 
     private User getUser(String uuid) {
         User user = userRepository.findByUuid(uuid)
-                .orElseThrow(() -> new UserException(USER_NOT_FOUND));
+            .orElseThrow(() -> new UserException(USER_NOT_FOUND));
 
         if (user.getDeletedAt() != null) {
             throw new UserException(USER_DELETED_AT);
@@ -92,5 +92,4 @@ public class UserServiceImpl implements UserService {
 
         return user;
     }
-
 }

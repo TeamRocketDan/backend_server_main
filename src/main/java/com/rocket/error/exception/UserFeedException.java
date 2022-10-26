@@ -17,5 +17,4 @@ public class UserFeedException extends RuntimeException {
         this.errorCode = errorCode;
         this.errorMessage = errorCode.getMessage();
     }
-
 }

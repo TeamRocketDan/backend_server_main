@@ -1,5 +1,12 @@
 package com.rocket.user.user.controller;
 
+import static com.rocket.error.type.UserErrorCode.USER_DELETED_AT;
+import static com.rocket.error.type.UserErrorCode.USER_NOT_FOUND;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doThrow;
+
+import com.rocket.error.exception.UserException;
+import com.rocket.error.handler.GlobalExceptionHandler;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.rocket.error.exception.UserException;
 import com.rocket.error.handler.GlobalExceptionHandler;
@@ -10,6 +17,7 @@ import com.rocket.user.user.entity.User;
 import com.rocket.user.user.service.FollowService;
 import com.rocket.user.user.service.UserService;
 import com.rocket.utils.CommonRequestContext;
+import java.time.LocalDateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -23,7 +31,6 @@ import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.view.json.MappingJackson2JsonView;
@@ -34,6 +41,7 @@ import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
 import java.time.LocalDateTime;
 import java.util.*;
+
 
 import static com.rocket.error.type.UserErrorCode.*;
 import static com.rocket.utils.JsonUtils.toJson;
@@ -50,11 +58,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(UserController.class)
 @Import(
-        {
-                CommonRequestContext.class,
-                UserException.class,
-                GlobalExceptionHandler.class
-        }
+    {
+        CommonRequestContext.class,
+        UserException.class,
+        GlobalExceptionHandler.class
+    }
 )
 @AutoConfigureMockMvc(addFilters = false)
 public class UserControllerTest {
@@ -75,17 +83,17 @@ public class UserControllerTest {
         UserController userController = new UserController(userService, followService);
 
         mockMvc = MockMvcBuilders
-                .standaloneSetup(userController)
-                .setControllerAdvice(
-                        GlobalExceptionHandler.class
-                )
-                .setCustomArgumentResolvers(
-                        new PageableHandlerMethodArgumentResolver()
-                )
-                .setViewResolvers(
-                        ((viewName, locale) -> new MappingJackson2JsonView())
-                )
-                .build();
+            .standaloneSetup(userController)
+            .setControllerAdvice(
+                GlobalExceptionHandler.class
+            )
+            .setCustomArgumentResolvers(
+                new PageableHandlerMethodArgumentResolver()
+            )
+            .setViewResolvers(
+                ((viewName, locale) -> new MappingJackson2JsonView())
+            )
+            .build();
 
         factory = Validation.buildDefaultValidatorFactory();
         validator = factory.getValidator();
@@ -94,36 +102,38 @@ public class UserControllerTest {
     @Nested
     @DisplayName("마이 페이지")
     public class mypage {
+
         User user = User.builder()
-                .id(1L)
-                .username("한규빈")
-                .email("rbsks147@naver.com")
-                .uuid("uuid")
-                .deletedAt(null)
-                .build();
+            .id(1L)
+            .username("한규빈")
+            .email("rbsks147@naver.com")
+            .uuid("uuid")
+            .deletedAt(null)
+            .build();
 
         User deletedAtUser = User.builder()
-                .id(1L)
-                .username("한규빈")
-                .email("rbsks147@naver.com")
-                .uuid("uuid")
-                .deletedAt(LocalDateTime.now())
-                .build();
+            .id(1L)
+            .username("한규빈")
+            .email("rbsks147@naver.com")
+            .uuid("uuid")
+            .deletedAt(LocalDateTime.now())
+            .build();
 
         UserMypageDto userMypageDto = UserMypageDto.builder()
-                .userId(1L)
-                .username("한규빈")
-                .email("rbsks147@naver.com")
-                .nickname("규난")
-                .follower(10L)
-                .following(10L)
-                .build();
+            .userId(1L)
+            .username("한규빈")
+            .email("rbsks147@naver.com")
+            .nickname("규난")
+            .follower(10L)
+            .following(10L)
+            .build();
+
         @Test
         @DisplayName("마이 페이지 성공")
         public void success_mypage() throws Exception {
             // given
             given(userService.mypage())
-                    .willReturn(userMypageDto);
+                .willReturn(userMypageDto);
 
             // when
 
@@ -141,7 +151,7 @@ public class UserControllerTest {
         public void fail_mypage_01() throws Exception {
             // given
             doThrow(new UserException(USER_NOT_FOUND)).when(userService)
-                            .mypage();
+                .mypage();
 
             // when
 
@@ -160,7 +170,7 @@ public class UserControllerTest {
         public void fail_mypage_02() throws Exception {
             // given
             doThrow(new UserException(USER_DELETED_AT)).when(userService)
-                    .mypage();
+                .mypage();
 
             // when
 

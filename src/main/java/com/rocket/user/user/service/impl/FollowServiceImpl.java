@@ -1,18 +1,26 @@
 package com.rocket.user.user.service.impl;
 
 import com.rocket.error.exception.UserException;
+import com.rocket.user.user.dto.FollowerDto;
+import com.rocket.user.user.dto.FollowingDto;
 import com.rocket.user.user.entity.Follow;
 import com.rocket.user.user.entity.User;
 import com.rocket.user.user.repository.FollowRepository;
 import com.rocket.user.user.repository.UserRepository;
 import com.rocket.user.user.service.FollowService;
 import com.rocket.utils.CommonRequestContext;
+import com.rocket.utils.PagingResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import static com.rocket.error.type.UserErrorCode.USER_ALREADY_FOLLOWING;
-import static com.rocket.error.type.UserErrorCode.USER_NOT_FOUND;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+
+import static com.rocket.error.type.UserErrorCode.*;
 
 @Repository
 @RequiredArgsConstructor
@@ -25,9 +33,12 @@ public class FollowServiceImpl implements FollowService {
     @Override
     @Transactional
     public void following(Long followingUserId) {
-        User follower = getUserByUuid(commonRequestContext.getUuid());
-        User following = getUserById(followingUserId);
+        User following = getUserByUuid(commonRequestContext.getUuid());
+        User follower = getUserById(followingUserId);
 
+        if (Objects.equals(follower.getId(), following.getId())) {
+            throw new UserException(USER_IMPOSSIBLE_FOLLOWING);
+        }
 
         boolean exists = followRepository.existsByFollowerAndFollowing(follower, following);
         if (exists) {
@@ -40,6 +51,48 @@ public class FollowServiceImpl implements FollowService {
                 .build();
 
         followRepository.save(follow);
+    }
+
+    @Override
+    @Transactional
+    public void unFollowing(Long followerUserId) {
+        User following = getUserByUuid(commonRequestContext.getUuid());
+        User follower = getUserById(followerUserId);
+
+        followRepository.deleteByFollowerAndFollowing(follower, following);
+    }
+
+    @Override
+    @Transactional
+    public void unFollower(Long followingUserId) {
+        User follower = getUserByUuid(commonRequestContext.getUuid());
+        User following = getUserById(followingUserId);
+
+        followRepository.deleteByFollowerAndFollowing(follower, following);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PagingResponse followerList(Pageable pageable) {
+        User user = getUserByUuid(commonRequestContext.getUuid());
+
+        Page<Follow> followers = followRepository.findByFollower(user, pageable);
+
+        return PagingResponse.fromEntity(
+                followers.map(follow -> FollowerDto.fromEntity(follow))
+        );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PagingResponse followingList(Pageable pageable) {
+        User user = getUserByUuid(commonRequestContext.getUuid());
+
+        Page<Follow> followings = followRepository.findByFollowing(user, pageable);
+
+        return PagingResponse.fromEntity(
+                followings.map(follow -> FollowingDto.fromEntity(follow))
+        );
     }
 
     private User getUserByUuid(String uuid) {
@@ -62,7 +115,7 @@ public class FollowServiceImpl implements FollowService {
 
     private void validateUser(User user) {
         if (user.getDeletedAt() != null) {
-            throw new RuntimeException("이미 탈퇴한 유저입니다.");
+            throw new UserException(USER_DELETED_AT);
         }
     }
 }

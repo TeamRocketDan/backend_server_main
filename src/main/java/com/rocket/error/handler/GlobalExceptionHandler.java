@@ -1,5 +1,7 @@
 package com.rocket.error.handler;
 
+import com.amazonaws.services.s3.model.AmazonS3Exception;
+import com.rocket.error.exception.AreaException;
 import com.rocket.error.exception.AuthException;
 import com.rocket.error.exception.UserException;
 import com.rocket.error.exception.UserFeedException;
@@ -20,6 +22,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler({
             MethodArgumentNotValidException.class,
+            AmazonS3Exception.class,
             Exception.class
     })
     public ResponseEntity<?> handleException(Exception e) {
@@ -37,6 +40,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(UserException.class)
     public ResponseEntity<GlobalErrorResult> userExceptionHandler(UserException e) {
+        log.error("Exception is occurred.", e);
         GlobalErrorResult result = GlobalErrorResult.of(e.getErrorMessage());
         return new ResponseEntity<>(result, e.getErrorCode().getHttpStatus());
     }
@@ -49,6 +53,13 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(AuthException.class)
     public ResponseEntity<GlobalErrorResult> AuthExceptionHandler(AuthException e) {
+        GlobalErrorResult result = GlobalErrorResult.of(e.getErrorMessage());
+        return new ResponseEntity<>(result, e.getErrorCode().getHttpStatus());
+    }
+
+    @ExceptionHandler(AreaException.class)
+    public ResponseEntity<GlobalErrorResult> AreaExceptionHandler(AreaException e) {
+        log.error("Exception is occurred.", e);
         GlobalErrorResult result = GlobalErrorResult.of(e.getErrorMessage());
         return new ResponseEntity<>(result, e.getErrorCode().getHttpStatus());
     }

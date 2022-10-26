@@ -2,7 +2,6 @@ package com.rocket.config.oauth2.filter;
 
 import com.rocket.config.jwt.AuthToken;
 import com.rocket.config.jwt.AuthTokenProvider;
-import com.rocket.config.oauth2.repository.RedisAuthTokenRepository;
 import com.rocket.utils.CommonRequestContext;
 import com.rocket.utils.HeaderUtil;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +10,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.FilterChain;
@@ -43,7 +43,7 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
         String tokenStr = HeaderUtil.getAccessToken(request);
         AuthToken token = tokenProvider.convertAuthToken(tokenStr);
 
-        if (!urlSet.contains(requestURI)
+        if (!urlSet.contains(requestURI) && StringUtils.hasText(tokenStr)
             && ObjectUtils.isEmpty(redisTemplate.opsForValue().get(tokenStr))) { // !requestURI.equals("/api/v1/auth/healthcheck")) {
 
             Authentication authentication = tokenProvider.getAuthentication(token, request);

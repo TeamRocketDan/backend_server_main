@@ -1,13 +1,12 @@
-package com.rocket.user.userfeed.vo;
+package com.rocket.common.response;
 
-import java.util.ArrayList;
 import java.util.List;
 import lombok.Builder;
 import lombok.Data;
 
 @Data
 @Builder
-public class PageResponse {
+public class PageResponse<T> {
 
     private Boolean lastPage;
 
@@ -21,5 +20,8 @@ public class PageResponse {
 
     private Integer currentPage;
 
-    private List<FeedResponse> content;
+    private List<T> content;
+
+
+
 }

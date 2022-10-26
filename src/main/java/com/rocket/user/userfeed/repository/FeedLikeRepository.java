@@ -11,4 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 public interface FeedLikeRepository extends JpaRepository<FeedLike, Long> {
 
     Optional<FeedLike> findByUserIdAndFeedId(Long userId, Long feedId);
+
+    Long countByFeedId(Long feedId);
 }

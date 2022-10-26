@@ -11,6 +11,5 @@ import lombok.Data;
 public class FeedCommentResponse {
 
     private String feedCommentId;
-
     private String comment;
 }

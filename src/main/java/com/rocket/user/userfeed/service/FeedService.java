@@ -1,18 +1,23 @@
 package com.rocket.user.userfeed.service;
 
+import static com.rocket.error.type.UserErrorCode.USER_DELETED_AT;
+import static com.rocket.error.type.UserErrorCode.USER_NOT_FOUND;
 import static com.rocket.error.type.UserFeedErrorCode.FEED_NOT_FOUND;
 
+import com.rocket.error.exception.UserException;
 import com.rocket.error.exception.UserFeedException;
 import com.rocket.user.user.entity.User;
+import com.rocket.user.user.repository.UserRepository;
+import com.rocket.user.userfeed.dto.FeedDto;
 import com.rocket.user.userfeed.dto.FeedSearchCondition;
 import com.rocket.user.userfeed.entity.Feed;
-import com.rocket.user.userfeed.dto.FeedDto;
-import com.rocket.user.userfeed.dto.FeedForm;
 import com.rocket.user.userfeed.repository.FeedRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,22 +25,39 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class FeedService {
+
     private final FeedRepository feedRepository;
+    private final UserRepository userRepository;
+
+    @Transactional(readOnly = true)
+    public User getUser(String uuid) {
+        User user = userRepository.findByUuid(uuid)
+            .orElseThrow(() -> new UserException(USER_NOT_FOUND));
+
+        if (user.getDeletedAt() != null) {
+            throw new UserException(USER_DELETED_AT);
+        }
+        return user;
+    }
 
     public Feed getFeed(Long feedId) {
         return feedRepository.findById(feedId).orElse(null);
     }
 
-    public Page<Feed> getFeeds(User user, FeedSearchCondition searchCondition) {
-        return feedRepository.findByUserIdAndRcate1EqualsAndRcate2EqualsOrderByCreatedAtDesc(String.valueOf(user.getId()),
+    public Page<Feed> getFeeds(User user, FeedSearchCondition searchCondition,
+        Pageable pageable) {
+
+        return feedRepository.findByUserIdAndRcate1EqualsAndRcate2EqualsOrderByCreatedAtDesc(
+            user.getId(),
             searchCondition.getRcate1()
             , searchCondition.getRcate2()
-            , PageRequest.of(searchCondition.getPage(), searchCondition.getSize()));
+            , PageRequest.of(pageable.getPageNumber(), pageable.getPageSize()));
     }
 
     @Transactional
-    public Feed createFeed(User user, FeedDto feedDto) {
-        return feedRepository.save(Feed.builder()
+    public FeedDto createFeed(User user, FeedDto feedDto) {
+
+        Feed feed = feedRepository.save(Feed.builder()
             .user(user)
             .title(feedDto.getTitle())
             .content(feedDto.getContent())
@@ -45,24 +67,25 @@ public class FeedService {
             .longitude(feedDto.getLongitude())
             .latitude(feedDto.getLatitude())
             .build());
+        log.info("feed {}", feed);
+
+        return new ModelMapper().map(feed, FeedDto.class);
     }
 
     @Transactional
-    public Feed updateFeed(User user, Feed feed, FeedForm feedForm) {
-        return feedRepository.save(Feed.builder()
-            .title(feedForm.getTitle())
-            .content(feedForm.getContent())
-            .rcate1(feedForm.getRcate1())
-            .rcate2(feedForm.getRcate2())
-            .rcate3(feedForm.getRcate3())
-            .longitude(feedForm.getLongitude())
-            .latitude(feedForm.getLatitude())
-            .build());
+    public FeedDto updateFeed(Long id, FeedDto feedDto) {
+
+        Feed feed = feedRepository.findById(id)
+            .orElseThrow(() -> new UserFeedException(FEED_NOT_FOUND));
+        feed.updateFeed(feedDto);
+
+        return new ModelMapper().map(feed, FeedDto.class);
     }
 
     @Transactional
     public void deleteFeed(Long userId, Long FeedId) {
-        Feed feed = feedRepository.findById(userId)
+
+        Feed feed = feedRepository.findById(FeedId)
             .orElseThrow(() -> new UserFeedException(FEED_NOT_FOUND));
 
         try {

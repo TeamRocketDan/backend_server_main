@@ -22,7 +22,6 @@ public class User extends BaseEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
     private Long id; // PK
-
     private String username; // 이름
     private String email; // 이메일
     private String nickname; // 닉네임

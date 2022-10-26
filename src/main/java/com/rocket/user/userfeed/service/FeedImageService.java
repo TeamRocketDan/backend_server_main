@@ -1,6 +1,6 @@
 package com.rocket.user.userfeed.service;
 
-import com.rocket.user.userfeed.entity.Feed;
+import com.rocket.user.userfeed.dto.FeedDto;
 import com.rocket.user.userfeed.entity.FeedImage;
 import com.rocket.user.userfeed.repository.FeedImageRepository;
 import lombok.RequiredArgsConstructor;
@@ -14,13 +14,14 @@ public class FeedImageService {
 
     private final FeedImageRepository feedImageRepository;
 
+
     @Transactional
-    public FeedImage createFeedImage(Feed feed, MultipartFile[] files) {
+    public FeedImage createFeedImage(FeedDto FeedDto, MultipartFile files) {
         // TODO: AWS S3 Storage에 files 올리고 files 경로들을 imagePaths에 추가
 
         return feedImageRepository.save(FeedImage.builder()
-            .feed(feed)
-            // .imagePaths(<경로들>)
+//            .feed(FeedDto)
+//        List<String> files = awsS3Provider.uploadFile(multipartFiles, path);
             .build());
     }
 

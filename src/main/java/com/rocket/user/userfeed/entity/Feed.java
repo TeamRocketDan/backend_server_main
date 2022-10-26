@@ -2,13 +2,21 @@ package com.rocket.user.userfeed.entity;
 
 import com.rocket.config.jpa.entitiy.BaseEntity;
 import com.rocket.user.user.entity.User;
+import com.rocket.user.userfeed.dto.FeedDto;
+import java.time.LocalDateTime;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import javax.persistence.*;
-import java.time.LocalDateTime;
 
 @Getter
 @NoArgsConstructor
@@ -38,5 +46,34 @@ public class Feed extends BaseEntity {
 
     private LocalDateTime deletedAt; // 삭제 날짜
 
+    public void updateFeed(FeedDto feedDto) {
+        this.title = feedDto.getTitle();
+        this.content = feedDto.getContent();
+        this.rcate1 = feedDto.getRcate1();
+        this.rcate2 = feedDto.getRcate2();
+        this.rcate3 = feedDto.getRcate3();
+        this.longitude = feedDto.getLongitude();
+        this.latitude = feedDto.getLatitude();
+    }
+
+//    @OneToMany(cascade = CascadeType.ALL)
+//    @JoinColumn(name = "feed_id")
+//    private List<FeedImage> feedImage = new ArrayList<>();
+
     // TODO: CASCADE 옵션 부여하기
+
+    @Override
+    public String toString() {
+        return "Feed{" +
+            "id=" + id +
+            ", title='" + title + '\'' +
+            ", content='" + content + '\'' +
+            ", rcate1='" + rcate1 + '\'' +
+            ", rcate2='" + rcate2 + '\'' +
+            ", rcate3='" + rcate3 + '\'' +
+            ", longitude='" + longitude + '\'' +
+            ", latitude='" + latitude + '\'' +
+            ", deletedAt=" + deletedAt +
+            '}';
+    }
 }

@@ -13,7 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class FeedLikeService {
 
     private final FeedService feedService;
-
     private final FeedLikeRepository feedLikeRepository;
 
     @Transactional
@@ -24,8 +23,9 @@ public class FeedLikeService {
             .build());
     }
 
+    @Transactional
     public void deleteFeedLike(User user, Long feedId) {
-        FeedLike feedLike = feedLikeRepository.findByUserIdAndFeedId(Long.valueOf(user.getId()),
+        FeedLike feedLike = feedLikeRepository.findByUserIdAndFeedId(user.getId(),
             feedId).orElse(null);
 
         if (feedLike == null) {
@@ -34,5 +34,9 @@ public class FeedLikeService {
         }
 
         feedLikeRepository.delete(feedLike);
+    }
+
+    public Long getCount(Long feedId) {
+        return feedLikeRepository.countByFeedId(feedId);
     }
 }

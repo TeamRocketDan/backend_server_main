@@ -8,5 +8,4 @@ public interface UserService {
 
     UserMypageDto mypage();
 
-    User getUser(String uuid);
 }

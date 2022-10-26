@@ -32,4 +32,17 @@ public class FeedCommentService {
             , feedId
             , PageRequest.of(searchCondition.getPage(), searchCondition.getSize()));
     }
+
+    public FeedComment getFeedComment(Long id) {
+        return feedCommentRepository.findById(id).orElse(null);
+    }
+
+    public Long getCount(Long feedId) {
+        return feedCommentRepository.countByFeedId(feedId);
+    }
+
+    @Transactional
+    public void deleteFeedComment(FeedComment feedComment) {
+        feedCommentRepository.delete(feedComment);
+    }
 }

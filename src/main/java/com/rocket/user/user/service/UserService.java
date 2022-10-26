@@ -2,6 +2,9 @@ package com.rocket.user.user.service;
 
 import com.rocket.user.user.dto.UpdateNickname;
 import com.rocket.user.user.dto.UserMypageDto;
+import com.rocket.user.user.entity.User;
+import com.rocket.utils.PagingResponse;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;

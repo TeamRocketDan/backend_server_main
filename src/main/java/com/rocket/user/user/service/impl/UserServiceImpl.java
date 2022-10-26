@@ -9,8 +9,10 @@ import com.rocket.user.user.repository.query.UserQueryRepository;
 import com.rocket.user.user.service.UserService;
 import com.rocket.utils.AwsS3Provider;
 import com.rocket.utils.CommonRequestContext;
+import com.rocket.utils.PagingResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -41,7 +43,7 @@ public class UserServiceImpl implements UserService {
         User user = getUser(commonRequestContext.getUuid());
 
         return userQueryRepository.findById(user.getId())
-                .orElseThrow(() -> new UserException(USER_NOT_FOUND));
+            .orElseThrow(() -> new UserException(USER_NOT_FOUND));
     }
 
     @Override
@@ -82,7 +84,7 @@ public class UserServiceImpl implements UserService {
 
     private User getUser(String uuid) {
         User user = userRepository.findByUuid(uuid)
-                .orElseThrow(() -> new UserException(USER_NOT_FOUND));
+            .orElseThrow(() -> new UserException(USER_NOT_FOUND));
 
         if (user.getDeletedAt() != null) {
             throw new UserException(USER_DELETED_AT);
@@ -90,5 +92,4 @@ public class UserServiceImpl implements UserService {
 
         return user;
     }
-
 }

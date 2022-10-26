@@ -1,7 +1,7 @@
 package com.rocket.utils;
 
-import com.rocket.error.result.GlobalErrorResult;
-import lombok.*;
+import lombok.Getter;
+import lombok.Setter;
 
 public class ApiUtils {
 
@@ -12,6 +12,7 @@ public class ApiUtils {
     @Getter
     @Setter
     public static class ApiResult<T> {
+
         private final boolean success;
         private final T result;
 

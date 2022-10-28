@@ -26,6 +26,7 @@ public class UserQueryRepository {
                     user.username,
                     user.email,
                     user.nickname.coalesce(""),
+                    user.profileImage,
                     select(follow.count())
                         .from(follow)
                         .where(follow.follower.id.eq(user.id)),

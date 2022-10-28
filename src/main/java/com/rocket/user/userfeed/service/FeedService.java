@@ -2,16 +2,20 @@ package com.rocket.user.userfeed.service;
 
 import static com.rocket.error.type.UserErrorCode.USER_DELETED_AT;
 import static com.rocket.error.type.UserErrorCode.USER_NOT_FOUND;
+import static com.rocket.error.type.UserFeedErrorCode.FEED_CREATE_FAIL;
 import static com.rocket.error.type.UserFeedErrorCode.FEED_NOT_FOUND;
+import static com.rocket.error.type.UserFeedErrorCode.FEED_UPDATE_FAIL;
 
 import com.rocket.error.exception.UserException;
 import com.rocket.error.exception.UserFeedException;
+import com.rocket.error.type.UserFeedErrorCode;
 import com.rocket.user.user.entity.User;
 import com.rocket.user.user.repository.UserRepository;
 import com.rocket.user.userfeed.dto.FeedDto;
 import com.rocket.user.userfeed.dto.FeedSearchCondition;
 import com.rocket.user.userfeed.entity.Feed;
 import com.rocket.user.userfeed.repository.FeedRepository;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -20,6 +24,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 @Slf4j
 @Service
@@ -28,6 +33,8 @@ public class FeedService {
 
     private final FeedRepository feedRepository;
     private final UserRepository userRepository;
+
+    private final FeedImageService feedImageService;
 
     @Transactional(readOnly = true)
     public User getUser(String uuid) {
@@ -44,6 +51,15 @@ public class FeedService {
         return feedRepository.findById(feedId).orElse(null);
     }
 
+    public Page<Feed> getFeedList(FeedSearchCondition searchCondition,
+        Pageable pageable) {
+
+        return feedRepository.findByRcate1EqualsAndRcate2EqualsOrderByCreatedAtDesc(
+            searchCondition.getRcate1()
+            , searchCondition.getRcate2()
+            , PageRequest.of(pageable.getPageNumber(), pageable.getPageSize()));
+    }
+
     public Page<Feed> getFeeds(User user, FeedSearchCondition searchCondition,
         Pageable pageable) {
 
@@ -54,22 +70,31 @@ public class FeedService {
             , PageRequest.of(pageable.getPageNumber(), pageable.getPageSize()));
     }
 
+
     @Transactional
-    public FeedDto createFeed(User user, FeedDto feedDto) {
+    public FeedDto createFeed(User user, Feed feed, List<MultipartFile> multipartFiles) {
 
-        Feed feed = feedRepository.save(Feed.builder()
-            .user(user)
-            .title(feedDto.getTitle())
-            .content(feedDto.getContent())
-            .rcate1(feedDto.getRcate1())
-            .rcate2(feedDto.getRcate2())
-            .rcate3(feedDto.getRcate3())
-            .longitude(feedDto.getLongitude())
-            .latitude(feedDto.getLatitude())
-            .build());
-        log.info("feed {}", feed);
+        Feed newFeed = null;
 
-        return new ModelMapper().map(feed, FeedDto.class);
+        try {
+            newFeed = feedRepository.save(Feed.builder()
+                .user(user)
+                .title(feed.getTitle())
+                .content(feed.getContent())
+                .rcate1(feed.getRcate1())
+                .rcate2(feed.getRcate2())
+                .longitude(feed.getLongitude())
+                .latitude(feed.getLatitude())
+                .build());
+
+            feedImageService.createFeedImage(user, newFeed, multipartFiles);
+
+        } catch (Exception e) {
+            log.error("[FeedService.createFeed] ERROR {}", e);
+
+            throw new UserFeedException(UserFeedErrorCode.FEED_CREATE_FAIL);
+        }
+        return new ModelMapper().map(newFeed, FeedDto.class);
     }
 
     @Transactional
@@ -77,24 +102,28 @@ public class FeedService {
 
         Feed feed = feedRepository.findById(id)
             .orElseThrow(() -> new UserFeedException(FEED_NOT_FOUND));
-        feed.updateFeed(feedDto);
+
+        try {
+            feed.updateFeed(feedDto);
+        } catch (Exception e) {
+            log.error("[FeedService.updateFeed] ERROR {}", e.getMessage());
+            throw new UserFeedException(FEED_UPDATE_FAIL);
+        }
 
         return new ModelMapper().map(feed, FeedDto.class);
     }
 
     @Transactional
-    public void deleteFeed(Long userId, Long FeedId) {
+    public void deleteFeed(Long userId, Long feedId) {
 
-        Feed feed = feedRepository.findById(FeedId)
+        Feed feed = feedRepository.findById(feedId)
             .orElseThrow(() -> new UserFeedException(FEED_NOT_FOUND));
 
         try {
             feedRepository.delete(feed);
         } catch (Exception e) {
             log.error("[FeedService.deleteFeed] ERROR {}", e.getMessage());
-
-            // TODO: 먼가 만들자
-            throw new UserFeedException();
+            throw new UserFeedException(FEED_CREATE_FAIL);
         }
     }
 }

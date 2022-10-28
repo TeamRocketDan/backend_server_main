@@ -29,8 +29,6 @@ public class FeedResponse {
 
     private String rcate2;
 
-    private String rcate3;
-
     private String longitude;
 
     private String latitude;

@@ -39,8 +39,9 @@ spring:
             clientSecret: ${KAKAO_CLIENT_SECRET}
             clientAuthenticationMethod: post
             authorizationGrantType: authorization_code
-            redirectUri: ${KAKAO_REDIRECT_URI_LOCAL}
+            redirectUri: ${KAKAO_REDIRECT_URI}
             scope:
+              - profile_nickname
               - profile_image
               - account_email
             clientName: Kakao
@@ -49,7 +50,7 @@ spring:
             clientSecret: ${NAVER_CLIENT_SECRET}
             clientAuthenticationMethod: post
             authorizationGrantType: authorization_code
-            redirectUri: ${NAVER_REDIRECT_URI_LOCAL}
+            redirectUri: ${NAVER_REDIRECT_URI}
             scope:
               - name
               - email
@@ -100,6 +101,14 @@ cloud:
 
 property:
   s3-base-url: ${S3_BASIC_KEY}
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui-custom.html
+    operations-sorter: method
+    tags-sorter: alpha
 
 logging:
   level:

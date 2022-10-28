@@ -76,7 +76,7 @@ public class AuthController {
         }
 
         Claims claims = authToken.getExpiredTokenClaims(request);
-
+        // token이 만료가 아니면 token expire date - 5 minute분으로 비교 해야 할 거 같음
         if (claims == null) {
             throw new AuthException(NOT_YET_EXPIRED_TOKEN);
         }
@@ -103,6 +103,7 @@ public class AuthController {
 
         long validTime = authRefreshToken.getTokenClaims(request).getExpiration().getTime() - now.getTime();
 
+        // refresh token이 아예 만료된 경우도 체크를 해야할 거 같음
         if (validTime <= THREE_DAYS_MSEC) {
             // refresh 토큰 설정
             long refreshTokenExpiry = appProperties.getAuth().getRefreshTokenExpiry();

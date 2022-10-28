@@ -58,7 +58,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                                     " account. Please use your " + savedUser.getProviderType() + " account to login."
                     );
                 }
-                updateUser(savedUser, userInfo);
+//                updateUser(savedUser, userInfo);
             }
         } else {
             savedUser = createUser(userInfo, providerType);
@@ -85,7 +85,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             user.updateUsername(userInfo.getName());
         }
 
-        if (userInfo.getImageUrl() != null && !user.getProfileImage().equals(userInfo.getImageUrl())) {
+        if (userInfo.getImageUrl() != null && user.getProfileImage() != null
+                && !user.getProfileImage().equals(userInfo.getImageUrl())) {
             user.updateProfileImageUrl(userInfo.getImageUrl());
         }
 

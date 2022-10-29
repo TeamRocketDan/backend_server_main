@@ -2,7 +2,8 @@ package com.rocket.user.userfeed.service;
 
 import static com.rocket.error.type.UserErrorCode.USER_DELETED_AT;
 import static com.rocket.error.type.UserErrorCode.USER_NOT_FOUND;
-import static com.rocket.error.type.UserFeedErrorCode.FEED_CREATE_FAIL;
+import static com.rocket.error.type.UserFeedErrorCode.FEED_DELETE_FAIL;
+import static com.rocket.error.type.UserFeedErrorCode.FEED_IMAGE_UPLOAD_COUNT_OVER;
 import static com.rocket.error.type.UserFeedErrorCode.FEED_NOT_FOUND;
 import static com.rocket.error.type.UserFeedErrorCode.FEED_UPDATE_FAIL;
 
@@ -33,8 +34,8 @@ public class FeedService {
 
     private final FeedRepository feedRepository;
     private final UserRepository userRepository;
-
     private final FeedImageService feedImageService;
+
 
     @Transactional(readOnly = true)
     public User getUser(String uuid) {
@@ -76,6 +77,10 @@ public class FeedService {
 
         Feed newFeed = null;
 
+        if (multipartFiles.size() > 4) {
+            throw new UserFeedException(FEED_IMAGE_UPLOAD_COUNT_OVER);
+        }
+
         try {
             newFeed = feedRepository.save(Feed.builder()
                 .user(user)
@@ -95,6 +100,7 @@ public class FeedService {
             throw new UserFeedException(UserFeedErrorCode.FEED_CREATE_FAIL);
         }
         return new ModelMapper().map(newFeed, FeedDto.class);
+
     }
 
     @Transactional
@@ -119,11 +125,10 @@ public class FeedService {
         Feed feed = feedRepository.findById(feedId)
             .orElseThrow(() -> new UserFeedException(FEED_NOT_FOUND));
 
-        try {
+        if (feed.getUser().getId().equals(userId)) {
             feedRepository.delete(feed);
-        } catch (Exception e) {
-            log.error("[FeedService.deleteFeed] ERROR {}", e.getMessage());
-            throw new UserFeedException(FEED_CREATE_FAIL);
+        } else {
+            throw new UserFeedException(FEED_DELETE_FAIL);
         }
     }
 }

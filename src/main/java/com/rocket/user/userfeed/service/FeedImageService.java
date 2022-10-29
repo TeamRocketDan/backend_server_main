@@ -1,6 +1,6 @@
 package com.rocket.user.userfeed.service;
 
-import static com.rocket.error.type.UserFeedErrorCode.FEED_IMAGE_UPLOAD_COUNT_OVER;
+import static com.rocket.error.type.UserFeedErrorCode.FEED_IMAGE_UPLOAD_FAIL;
 
 import com.rocket.error.exception.UserFeedException;
 import com.rocket.user.user.entity.User;
@@ -25,28 +25,33 @@ public class FeedImageService {
 
     @Transactional
     public void createFeedImage(User user, Feed feed, List<MultipartFile> multipartFiles) {
-        // TODO: AWS S3 Storage에 files 올리고 files 경로들을 imagePaths에 추가
 
         String path = awsS3Provider.generatePath(S3_DIR_PREFIX, feed.getId());
 
         List<String> files = awsS3Provider.uploadFile(multipartFiles, path);
         List<FeedImage> feedImages = new ArrayList<>();
 
-        if (files.size() <= 4) {
+        try {
             for (String file : files) {
                 feedImages.add(FeedImage.builder()
                     .feed(feed)
                     .imagePaths(file)
                     .build());
+                feedImageRepository.saveAll(feedImages);
             }
-            feedImageRepository.saveAll(feedImages);
-        } else {
-            throw new UserFeedException(FEED_IMAGE_UPLOAD_COUNT_OVER);
+        } catch (Exception e) {
+            throw new UserFeedException(FEED_IMAGE_UPLOAD_FAIL);
         }
     }
 
-    public FeedImage getFeedImage(Long feedId) {
-        return feedImageRepository.findByFeedId(feedId)
-            .orElse(null);
+    public List<String> getFeedImages(Long feedId) {
+
+        List<FeedImage> feedImages = feedImageRepository.findAllByFeedId(feedId);
+        ArrayList<String> feedImageList = new ArrayList<>();
+
+        for (FeedImage feedImage : feedImages) {
+            feedImageList.add(feedImage.getImagePaths());
+        }
+        return feedImageList;
     }
 }

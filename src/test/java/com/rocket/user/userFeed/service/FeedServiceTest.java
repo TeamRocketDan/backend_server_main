@@ -137,7 +137,7 @@ public class FeedServiceTest {
         @Test
         @DisplayName("피드 조회")
         public void success_getFeed() {
-            Feed myFeed = feedService.getFeed(13L);
+            Feed myFeed = feedService.getFeed(17L);
             System.out.println(myFeed);
         }
 
@@ -171,7 +171,7 @@ public class FeedServiceTest {
         @DisplayName("피드 삭제")
         @Rollback(value = false)
         public void success_deleteFeed() {
-            feedService.deleteFeed(user1.getId(), 4L);
+            feedService.deleteFeed(user1.getId(), 5L);
         }
 
         private MultipartFile convertFileToMultipartFile(File file) throws IOException {

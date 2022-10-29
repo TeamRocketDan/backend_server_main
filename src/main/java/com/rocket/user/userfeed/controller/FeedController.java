@@ -14,7 +14,6 @@ import com.rocket.user.userfeed.dto.FeedSearchCondition;
 import com.rocket.user.userfeed.entity.Feed;
 import com.rocket.user.userfeed.entity.FeedComment;
 import com.rocket.user.userfeed.entity.FeedCommentLike;
-import com.rocket.user.userfeed.entity.FeedImage;
 import com.rocket.user.userfeed.service.FeedCommentLikeService;
 import com.rocket.user.userfeed.service.FeedCommentService;
 import com.rocket.user.userfeed.service.FeedImageService;
@@ -35,7 +34,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -71,8 +69,7 @@ public class FeedController {
         , @RequestPart("files") List<MultipartFile> multipartFiles
         , @RequestPart("feed") Feed feed) {
 
-        if (multipartFiles == null
-            || multipartFiles.isEmpty()) {
+        if (multipartFiles == null || multipartFiles.isEmpty()) {
             throw new UserFeedException(UserFeedErrorCode.UPLOAD_AT_LEAST_ONE_IMAGE);
         }
 
@@ -110,16 +107,14 @@ public class FeedController {
     }
 
     @GetMapping("/feedList")
-    public ApiResult<PageResponse<FeedResponse>> getFeedList(HttpServletRequest request
-        , FeedSearchCondition searchCondition
+    public ApiResult<PageResponse<FeedResponse>> getFeedList(FeedSearchCondition searchCondition
         , Pageable pageable) {
 
-        User user = getUser(request);
         Page<Feed> feeds = feedService.getFeedList(searchCondition, pageable);
         List<FeedResponse> feedResponses = new ArrayList<>();
 
         for (Feed feed : feeds) {
-            feedResponses.add(getFeedResponse(user, feed));
+            feedResponses.add(getFeedListResponse(feed));
         }
 
         return ApiUtils.success(PageResponse.<FeedResponse>builder()
@@ -142,36 +137,34 @@ public class FeedController {
         if (feed == null) {
             throw new UserFeedException(UserFeedErrorCode.FEED_NOT_FOUND);
         }
-
         return ApiUtils.success(getFeedResponse(user, feed));
     }
 
-    @PatchMapping(value = "/{feedId}", consumes = {MediaType.APPLICATION_JSON_VALUE,
-        MediaType.MULTIPART_FORM_DATA_VALUE})
-    public ApiResult<FeedResponse> updateImagePaths(HttpServletRequest request
-        , @PathVariable("feedId") String feedId
-        , @RequestPart("files") List<MultipartFile> multipartFiles) {
-
-        // TODO: 싹 다 삭제 -> 싹 다 업로드
-        User user = getUser(request);
-        FeedImage feedImage = feedImageService.getFeedImage(Long.valueOf(feedId));
-        // TODO: feedImageService에서 S3 imagePath 수정하는 코드 구현 필요
-
-        // TODO: feedImageService에서 불러온 feedImage에서 feedId를 꺼내서 해당 id를 기반으로 Feed도 불러옴
-        Feed feed = feedService.getFeed(Long.valueOf(feedId));
-
-        if (feed == null) {
-            // TODO: UserFeedException 처리
-            throw new UserFeedException(UserFeedErrorCode.FEED_NOT_FOUND);
-        }
-
-        return ApiUtils.success(FeedResponse.builder()
-//             .feedId()
-//             .title()
-//             .content()
-//             .imagePaths()
-            .build());
-    }
+//    @PatchMapping(value = "/{feedId}", consumes = {MediaType.APPLICATION_JSON_VALUE,
+//        MediaType.MULTIPART_FORM_DATA_VALUE})
+//    public ApiResult<FeedResponse> updateImagePaths(HttpServletRequest request
+//        , @PathVariable("feedId") String feedId
+//        , @RequestPart("files") List<MultipartFile> multipartFiles) {
+//
+//        User user = getUser(request);
+//        FeedImage feedImage = feedImageService.getFeedImage(Long.valueOf(feedId));
+//        // TODO: feedImageService에서 S3 imagePath 수정하는 코드 구현 필요
+//
+//        // TODO: feedImageService에서 불러온 feedImage에서 feedId를 꺼내서 해당 id를 기반으로 Feed도 불러옴
+//        Feed feed = feedService.getFeed(Long.valueOf(feedId));
+//
+//        if (feed == null) {
+//            // TODO: UserFeedException 처리
+//            throw new UserFeedException(UserFeedErrorCode.FEED_NOT_FOUND);
+//        }
+//
+//        return ApiUtils.success(FeedResponse.builder()
+////             .feedId()
+////             .title()
+////             .content()
+////             .imagePaths()
+//            .build());
+//    }
 
     @DeleteMapping("/{feedId}")
     public ApiResult deleteFeed(HttpServletRequest request
@@ -221,7 +214,7 @@ public class FeedController {
     }
 
     @GetMapping("/{feedId}/comments")
-    public ApiResult<PageResponse<FeedResponse>> getFeedComments(HttpServletRequest request
+    public ApiResult<PageResponse<FeedCommentResponse>> getFeedComments(HttpServletRequest request
         , @PathVariable("feedId") String feedId
         , Pageable pageable) {
         User user = getUser(request);
@@ -232,23 +225,23 @@ public class FeedController {
         }
 
         Page<FeedComment> feedComments = feedCommentService.getFeedComments(
-            user.getId(), Long.valueOf(feedId), pageable);
+            Long.valueOf(feedId), pageable);
 
-        List<FeedResponse> content = new ArrayList<>();
+        List<FeedCommentResponse> content = new ArrayList<>();
 
-        for (FeedComment feedComment : feedComments) {
-            content.add(FeedResponse.builder()
-                .userId(String.valueOf(user.getId()))
-                .profileImagePath(user.getProfileImage())
-                .nickname(user.getNickname())
-                .email(user.getEmail())
-                .comment(feedComment.getComment())
-                .commentLikeCnt(
-                    feedCommentLikeService.getCount(feedComment.getId()))
-                .build());
-        }
+//        for (FeedComment feedComment : feedComments) {
+//            content.add(FeedResponse.builder()
+//                .userId(String.valueOf(user.getId()))
+//                .profileImagePath(user.getProfileImage())
+//                .nickname(user.getNickname())
+//                .email(user.getEmail())
+//                .content(feedComment.getComment())
+//                .commentLikeCnt(
+//                    feedCommentLikeService.getCount(feedComment.getId()))
+//                .build());
+//        }
 
-        return ApiUtils.success(PageResponse.<FeedResponse>builder()
+        return ApiUtils.success(PageResponse.<FeedCommentResponse>builder()
             .lastPage(feedComments.isLast())
             .firstPage(feedComments.isFirst())
             .totalPages(feedComments.getTotalPages())
@@ -320,11 +313,29 @@ public class FeedController {
 
             .feedLikeCnt(feedLikeService.getCount(feed.getId())) // TODO: null 예외 처리 필요
             .feedCommentCnt(feedCommentService.getCount(feed.getId()))
-            .imagePaths(new ArrayList<>())
-            .comment(feed.getContent())
-            .commentLikeCnt(feedCommentLikeService.getCount(feed.getId()))
+            .feedImages(feedImageService.getFeedImages(feed.getId()))
+//            .comments(feedCommentService.getFeedComments(feed.getId(), Pageable.ofSize(10)))
+//            .commentLikeCnt(feedCommentLikeService.getCount(feed.getId()))
             .build();
     }
+
+    private FeedResponse getFeedListResponse(Feed feed) {
+        return FeedResponse.builder()
+            .title(feed.getTitle())
+            .content(feed.getContent())
+            .rcate1(feed.getRcate1())
+            .rcate2(feed.getRcate2())
+            .longitude(feed.getLongitude())
+            .latitude(feed.getLatitude())
+
+            .feedLikeCnt(feedLikeService.getCount(feed.getId())) // TODO: null 예외 처리 필요
+            .feedCommentCnt(feedCommentService.getCount(feed.getId()))
+            .feedImages(feedImageService.getFeedImages(feed.getId()))
+//            .comments(feedCommentService.getFeedComments(feed.getId(), Pageable.ofSize(10)))
+//            .commentLikeCnt(feedCommentLikeService.getCount(feed.getId()))
+            .build();
+    }
+
 
     private User getUser(HttpServletRequest request) {
         String accessToken = HeaderUtil.getAccessToken(request);

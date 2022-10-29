@@ -46,9 +46,14 @@ public class Feed extends BaseEntity {
     private String longitude; // 경도
     private String latitude; // 위도
 
-    @OneToMany(cascade = CascadeType.ALL)
-    @JoinColumn(name = "feed_id")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "feed")
     private List<FeedImage> feedImage = new ArrayList<>();
+
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "feed")
+    private List<FeedComment> feedComment = new ArrayList<>();
+
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "feed")
+    private List<FeedLike> feedLike = new ArrayList<>();
     private LocalDateTime deletedAt; // 삭제 날짜
 
     public void updateFeed(FeedDto feedDto) {
@@ -72,6 +77,10 @@ public class Feed extends BaseEntity {
             ", rcate2='" + rcate2 + '\'' +
             ", longitude='" + longitude + '\'' +
             ", latitude='" + latitude + '\'' +
+//            ", feedImage='" + feedImage.toString() + '\'' +
+//            ", feedLike='" + feedLike.toString() + '\'' +
+//            ", feedComment='" + feedComment.toString() + '\'' +
+//            ", FeedCommentLike='" + FeedCommentLike.toString() + '\'' +
             ", deletedAt=" + deletedAt +
             '}';
     }

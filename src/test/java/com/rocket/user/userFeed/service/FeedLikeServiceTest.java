@@ -51,7 +51,6 @@ public class FeedLikeServiceTest {
                 .content("여행을 추억합니다 :)")
                 .rcate1("서울시")
                 .rcate2("강남구")
-//                .rcate3("신사동")
                 .longitude("37.524567")
                 .latitude("127.037444")
                 .build();
@@ -60,22 +59,19 @@ public class FeedLikeServiceTest {
         @Test
         @DisplayName("피드 좋아요")
         public void success_createFeedLike() {
-            //when
-            FeedLike likeFeed = feedLikeService.createFeedLike(user1, 4L);
-            //then
-
+            FeedLike likeFeed = feedLikeService.createFeedLike(user1, 17L);
         }
 
         @Test
         @DisplayName("피드 좋아요 취소")
         public void success_deleteFeedLike() {
-            feedLikeService.deleteFeedLike(user1, 4L);
+            feedLikeService.deleteFeedLike(user1, 17L);
         }
 
         @Test
         @DisplayName("피드 좋아요 갯수")
         public void getFeedLikeCount() {
-            System.out.println(feedLikeService.getCount(4L));
+            System.out.println(feedLikeService.getCount(17L));
         }
     }
 }

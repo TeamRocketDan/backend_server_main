@@ -1,5 +1,9 @@
 package com.rocket.user.userfeed.service;
 
+import static com.rocket.error.type.UserFeedErrorCode.FEED_ALREADY_FEED_LIKE;
+import static com.rocket.error.type.UserFeedErrorCode.FEED_ALREADY_FEED_LIKE_CANCEL;
+import static com.rocket.error.type.UserFeedErrorCode.FEED_LIKE_FAIL;
+
 import com.rocket.error.exception.UserFeedException;
 import com.rocket.user.user.entity.User;
 import com.rocket.user.userfeed.entity.FeedLike;
@@ -17,10 +21,23 @@ public class FeedLikeService {
 
     @Transactional
     public FeedLike createFeedLike(User user, Long feedId) {
-        return feedLikeRepository.save(FeedLike.builder()
-            .feed(feedService.getFeed(feedId))
-            .user(user)
-            .build());
+
+        FeedLike newFeedLike = feedLikeRepository.findByUserIdAndFeedId(user.getId(),
+            feedId).orElse(null);
+
+        if (newFeedLike == null) {
+            try {
+                newFeedLike = feedLikeRepository.save(FeedLike.builder()
+                    .feed(feedService.getFeed(feedId))
+                    .user(user)
+                    .build());
+            } catch (Exception e) {
+                throw new UserFeedException(FEED_LIKE_FAIL);
+            }
+        } else {
+            throw new UserFeedException(FEED_ALREADY_FEED_LIKE);
+        }
+        return newFeedLike;
     }
 
     @Transactional
@@ -29,10 +46,8 @@ public class FeedLikeService {
             feedId).orElse(null);
 
         if (feedLike == null) {
-            // TODO: 예외처리
-            throw new UserFeedException();
+            throw new UserFeedException(FEED_ALREADY_FEED_LIKE_CANCEL);
         }
-
         feedLikeRepository.delete(feedLike);
     }
 

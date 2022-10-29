@@ -11,7 +11,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public interface FeedCommentRepository extends JpaRepository<FeedComment, Long> {
 
-    Page<FeedComment> findByUserIdAndFeedId(Long userId, Long feedId, PageRequest pageRequest);
+    Page<FeedComment> findByFeedId(Long feedId, PageRequest pageRequest);
+
 
     Long countByFeedId(Long feedId);
 }

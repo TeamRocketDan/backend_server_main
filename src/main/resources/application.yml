@@ -80,8 +80,9 @@ jwt.secret: ${JWT_SECRET}
 app:
   auth:
     tokenSecret: ${TOKEN_SECRET}
-    tokenExpiry: 1800000 #30min
-    refreshTokenExpiry: 604800000 #7day
+    tokenExpiry: 1800000 #60000 #30min
+    refreshTokenExpiry: 604800000 #120000 #7day
+    validateRefreshExpiry: 259200000 #90000 #3day
   oauth2:
     authorizedRedirectUris:
       - http://localhost:3000/oauth2/redirect

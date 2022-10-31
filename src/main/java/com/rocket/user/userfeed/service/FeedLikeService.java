@@ -20,7 +20,7 @@ public class FeedLikeService {
     private final FeedLikeRepository feedLikeRepository;
 
     @Transactional
-    public FeedLike createFeedLike(User user, Long feedId) {
+    public FeedLike saveFeedLike(User user, Long feedId) {
 
         FeedLike newFeedLike = feedLikeRepository.findByUserIdAndFeedId(user.getId(),
             feedId).orElse(null);
@@ -42,6 +42,7 @@ public class FeedLikeService {
 
     @Transactional
     public void deleteFeedLike(User user, Long feedId) {
+
         FeedLike feedLike = feedLikeRepository.findByUserIdAndFeedId(user.getId(),
             feedId).orElse(null);
 
@@ -51,7 +52,4 @@ public class FeedLikeService {
         feedLikeRepository.delete(feedLike);
     }
 
-    public Long getCount(Long feedId) {
-        return feedLikeRepository.countByFeedId(feedId);
-    }
 }

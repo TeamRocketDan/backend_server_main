@@ -49,16 +49,13 @@ public class FeedService {
     }
 
     public Feed getFeed(Long feedId) {
-        return feedRepository.findById(feedId).orElse(null);
-    }
 
-    public Page<Feed> getFeedList(FeedSearchCondition searchCondition,
-        Pageable pageable) {
+        Feed getFeed = feedRepository.findById(feedId).orElse(null);
 
-        return feedRepository.findByRcate1EqualsAndRcate2EqualsOrderByCreatedAtDesc(
-            searchCondition.getRcate1()
-            , searchCondition.getRcate2()
-            , PageRequest.of(pageable.getPageNumber(), pageable.getPageSize()));
+        if (getFeed == null) {
+            throw new UserFeedException(UserFeedErrorCode.FEED_NOT_FOUND);
+        }
+        return getFeed;
     }
 
     public Page<Feed> getFeeds(User user, FeedSearchCondition searchCondition,
@@ -71,7 +68,14 @@ public class FeedService {
             , PageRequest.of(pageable.getPageNumber(), pageable.getPageSize()));
     }
 
+    public Page<Feed> getFeedList(FeedSearchCondition searchCondition,
+        Pageable pageable) {
 
+        return feedRepository.findByRcate1EqualsAndRcate2EqualsOrderByCreatedAtDesc(
+            searchCondition.getRcate1()
+            , searchCondition.getRcate2()
+            , PageRequest.of(pageable.getPageNumber(), pageable.getPageSize()));
+    }
     @Transactional
     public FeedDto createFeed(User user, Feed feed, List<MultipartFile> multipartFiles) {
 

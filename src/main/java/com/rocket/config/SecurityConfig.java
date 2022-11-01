@@ -149,7 +149,8 @@ public class SecurityConfig {
                 .antMatchers(
                         "/api/v1/areas/**",
                         "/api/v1/auth/healthcheck",
-                        "/api/v1/auth/logout"
+                        "/api/v1/auth/logout",
+                        "/api/v1/feeds"
                 ).permitAll()
                 .antMatchers(
                         "/api/v1/users/**",

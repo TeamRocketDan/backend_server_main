@@ -19,6 +19,8 @@ public class FeedResponse {
 
     private String profileImagePath;
 
+    private String userName;
+
     private String nickname;
 
     private String email;
@@ -34,6 +36,10 @@ public class FeedResponse {
     private String longitude;
 
     private String latitude;
+
+    private boolean isLikeFeed;
+
+//    private boolean isLikeFeedComment;
 
     private Long feedLikeCnt;
 

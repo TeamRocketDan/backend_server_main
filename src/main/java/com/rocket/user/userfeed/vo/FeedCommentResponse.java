@@ -12,5 +12,20 @@ public class FeedCommentResponse {
 
     private String feedCommentId;
 
+    private String userId;
+
+    private String feedId;
+
+    private String profileImagePath;
+
+    private String userName;
+
+    private String email;
+
     private String comment;
+
+    private Long feedCommentLikeCnt;
+
+    private boolean isLikeFeedComment;
+
 }

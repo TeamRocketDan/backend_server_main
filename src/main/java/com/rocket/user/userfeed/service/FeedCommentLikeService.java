@@ -1,6 +1,7 @@
 package com.rocket.user.userfeed.service;
 
 import static com.rocket.error.type.UserFeedErrorCode.FEED_COMMENT_ALREADY_FEED_LIKE;
+import static com.rocket.error.type.UserFeedErrorCode.FEED_COMMENT_ALREADY_FEED_LIKE_CANCEL;
 import static com.rocket.error.type.UserFeedErrorCode.FEED_COMMENT_LIKE_FAIL;
 
 import com.rocket.error.exception.UserFeedException;
@@ -12,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.ObjectUtils;
 
 @Slf4j
 @Service
@@ -24,8 +26,8 @@ public class FeedCommentLikeService {
     public FeedCommentLike saveFeedCommentLike(User user, FeedComment feedComment) {
 
         FeedCommentLike newFeedCommentLike
-            = feedCommentLikeRepository.findByFeedCommentIdAndUserId(feedComment.getId(),
-            user.getId()).orElse(null);
+            = feedCommentLikeRepository.findByUserIdAndFeedCommentId(user.getId(),
+            feedComment.getId()).orElse(null);
 
         if (newFeedCommentLike == null) {
             try {
@@ -42,14 +44,33 @@ public class FeedCommentLikeService {
         return newFeedCommentLike;
     }
 
-    public FeedCommentLike getFeedCommentLike(Long feedCommentId, Long userId) {
-        return feedCommentLikeRepository.findByFeedCommentIdAndUserId(feedCommentId, userId)
+    public FeedCommentLike getFeedCommentLike(Long userId, Long feedCommentId) {
+        return feedCommentLikeRepository.findByUserIdAndFeedCommentId(userId, feedCommentId)
             .orElse(null);
+    }
+
+    public boolean isFeedCommentLike(User user, Long feedCommentId) {
+
+        boolean isFeedCommentLike;
+        if (feedCommentLikeRepository.findByUserIdAndFeedCommentId(user.getId(), feedCommentId)
+            .isPresent()) {
+            isFeedCommentLike = true;
+        } else {
+            isFeedCommentLike = false;
+        }
+        return isFeedCommentLike;
     }
 
 
     @Transactional
-    public void deleteFeedCommentLike(FeedCommentLike feedCommentLike) {
+    public void deleteFeedCommentLike(User user, Long commentId) {
+
+        FeedCommentLike feedCommentLike
+            = feedCommentLikeRepository.findByUserIdAndFeedCommentId(user.getId(), commentId)
+            .orElse(null);
+        if (ObjectUtils.isEmpty(feedCommentLike)) {
+            throw new UserFeedException(FEED_COMMENT_ALREADY_FEED_LIKE_CANCEL);
+        }
         feedCommentLikeRepository.delete(feedCommentLike);
     }
 }

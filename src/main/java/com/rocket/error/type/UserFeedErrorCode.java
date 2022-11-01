@@ -19,16 +19,15 @@ public enum UserFeedErrorCode {
     FEED_UPDATE_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "피드 수정에 실패했습니다."),
     FEED_DELETE_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "피드 삭제에 실패했습니다."),
     FEED_ALREADY_FEED_LIKE(HttpStatus.BAD_REQUEST, "이미 '좋아요'가 된 피드입니다."),
-    FEED_ALREADY_FEED_LIKE_CANCEL(HttpStatus.BAD_REQUEST, "이미 '좋아요'가 취소 된 피드입니다."),
+    FEED_ALREADY_FEED_LIKE_CANCEL(HttpStatus.BAD_REQUEST, "좋아요 하지 않은 피드입니다."),
     FEED_LIKE_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "피드 좋아요에 실패했습니다"),
 
     FEED_COMMENT_CREATE_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "댓글 생성에 실패했습니다."),
     FEED_COMMENT_UPDATE_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "댓글 수정에 실패했습니다."),
-
     FEED_COMMENT_DELETE_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "댓글 삭제에 실패했습니다."),
     FEED_COMMENT_ALREADY_DELETE_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "댓글 삭제에 실패했습니다."),
     FEED_COMMENT_ALREADY_FEED_LIKE(HttpStatus.BAD_REQUEST, "이미 '좋아요'가 된 댓글입니다."),
-    FEED_COMMENT_ALREADY_FEED_LIKE_CANCEL(HttpStatus.BAD_REQUEST, "이미 '좋아요'가 취소 된 댓글입니다."),
+    FEED_COMMENT_ALREADY_FEED_LIKE_CANCEL(HttpStatus.BAD_REQUEST, "좋아요 하지 않은 댓글입니다."),
     FEED_COMMENT_LIKE_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "댓글 좋아요에 실패했습니다");
 
     private final HttpStatus httpStatus;

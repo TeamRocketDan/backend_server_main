@@ -2,10 +2,10 @@ package com.rocket.user.userfeed.service;
 
 import static com.rocket.error.type.UserErrorCode.USER_DELETED_AT;
 import static com.rocket.error.type.UserErrorCode.USER_NOT_FOUND;
-import static com.rocket.error.type.UserFeedErrorCode.FEED_DELETE_FAIL;
 import static com.rocket.error.type.UserFeedErrorCode.FEED_IMAGE_UPLOAD_COUNT_OVER;
 import static com.rocket.error.type.UserFeedErrorCode.FEED_NOT_FOUND;
 import static com.rocket.error.type.UserFeedErrorCode.FEED_UPDATE_FAIL;
+import static com.rocket.error.type.UserFeedErrorCode.FEED_USER_NOT_MATCH;
 
 import com.rocket.error.exception.UserException;
 import com.rocket.error.exception.UserFeedException;
@@ -36,7 +36,6 @@ public class FeedService {
     private final UserRepository userRepository;
     private final FeedImageService feedImageService;
 
-
     @Transactional(readOnly = true)
     public User getUser(String uuid) {
         User user = userRepository.findByUuid(uuid)
@@ -58,7 +57,7 @@ public class FeedService {
         return getFeed;
     }
 
-    public Page<Feed> getFeeds(User user, FeedSearchCondition searchCondition,
+    public Page<Feed> getFeedList(User user, FeedSearchCondition searchCondition,
         Pageable pageable) {
 
         return feedRepository.findByUserIdAndRcate1EqualsAndRcate2EqualsOrderByCreatedAtDesc(
@@ -68,7 +67,7 @@ public class FeedService {
             , PageRequest.of(pageable.getPageNumber(), pageable.getPageSize()));
     }
 
-    public Page<Feed> getFeedList(FeedSearchCondition searchCondition,
+    public Page<Feed> getFeeds(FeedSearchCondition searchCondition,
         Pageable pageable) {
 
         return feedRepository.findByRcate1EqualsAndRcate2EqualsOrderByCreatedAtDesc(
@@ -76,6 +75,7 @@ public class FeedService {
             , searchCondition.getRcate2()
             , PageRequest.of(pageable.getPageNumber(), pageable.getPageSize()));
     }
+
     @Transactional
     public FeedDto createFeed(User user, Feed feed, List<MultipartFile> multipartFiles) {
 
@@ -132,7 +132,7 @@ public class FeedService {
         if (feed.getUser().getId().equals(userId)) {
             feedRepository.delete(feed);
         } else {
-            throw new UserFeedException(FEED_DELETE_FAIL);
+            throw new UserFeedException(FEED_USER_NOT_MATCH);
         }
     }
 }

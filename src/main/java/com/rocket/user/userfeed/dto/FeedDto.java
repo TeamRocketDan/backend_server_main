@@ -38,9 +38,6 @@ public class FeedDto {
     @NotEmpty(message = "시 / 군 / 구 를 선택해 주세요.")
     private String rcate2; // 지역 2 Depth, 구 단위
 
-    @Size(max = 20)
-    private String rcate3; // 지역 3 Depth, 동 단위
-
     @Size(max = 50)
     @NotEmpty(message = "경도 값이 누락되었습니다.")
     private String longitude; // 경도
@@ -55,7 +52,6 @@ public class FeedDto {
             .content(feed.getContent())
             .rcate1(feed.getRcate1())
             .rcate2(feed.getRcate2())
-            .rcate3(feed.getRcate3())
             .longitude(feed.getLongitude())
             .latitude(feed.getLatitude())
             .build();

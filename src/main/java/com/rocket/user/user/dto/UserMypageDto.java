@@ -13,15 +13,17 @@ public class UserMypageDto {
     private String username;
     private String email;
     private String nickname;
+    private String profileImagePath;
     private Long follower;
     private Long following;
 
     @QueryProjection
-    public UserMypageDto(Long userId, String username, String email, String nickname, Long follower, Long following) {
+    public UserMypageDto(Long userId, String username, String email, String nickname, String profileImagePath, Long follower, Long following) {
         this.userId = userId;
         this.username = username;
         this.email = email;
         this.nickname = nickname;
+        this.profileImagePath = profileImagePath;
         this.follower = follower;
         this.following = following;
     }

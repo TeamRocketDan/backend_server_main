@@ -26,6 +26,7 @@ public class AppProperties {
         private String tokenSecret;
         private long tokenExpiry;
         private long refreshTokenExpiry;
+        private long validateRefreshExpiry;
     }
 
     public static final class OAuth2 {

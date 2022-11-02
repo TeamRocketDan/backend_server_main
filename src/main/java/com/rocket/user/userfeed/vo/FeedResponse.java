@@ -2,9 +2,11 @@ package com.rocket.user.userfeed.vo;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.rocket.user.userfeed.entity.FeedComment;
 import java.util.List;
 import lombok.Builder;
 import lombok.Data;
+import org.springframework.data.domain.Page;
 
 @Data
 @Builder
@@ -16,6 +18,8 @@ public class FeedResponse {
     private String feedId;
 
     private String profileImagePath;
+
+    private String userName;
 
     private String nickname;
 
@@ -29,19 +33,21 @@ public class FeedResponse {
 
     private String rcate2;
 
-    private String rcate3;
-
     private String longitude;
 
     private String latitude;
+
+    private boolean isLikeFeed;
+
+//    private boolean isLikeFeedComment;
 
     private Long feedLikeCnt;
 
     private Long feedCommentCnt;
 
-    private List<String> imagePaths;
+    private List<String> feedImages;
 
-    private String comment;
+    private Page<FeedComment> feedComment;
 
     private Long commentLikeCnt;
 }

@@ -2,10 +2,11 @@ package com.rocket.user.userFeed.service;
 
 import com.rocket.user.user.entity.User;
 import com.rocket.user.user.repository.UserRepository;
-import com.rocket.user.userfeed.dto.FeedDto;
-import com.rocket.user.userfeed.entity.FeedLike;
+import com.rocket.user.userfeed.entity.FeedComment;
+import com.rocket.user.userfeed.entity.FeedCommentLike;
+import com.rocket.user.userfeed.repository.FeedCommentRepository;
 import com.rocket.user.userfeed.repository.FeedRepository;
-import com.rocket.user.userfeed.service.FeedLikeService;
+import com.rocket.user.userfeed.service.FeedCommentLikeService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
@@ -23,7 +24,7 @@ import org.springframework.test.context.ActiveProfiles;
 @SpringBootTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class FeedLikeServiceTest {
+public class FeedCommentLikeServiceTest {
 
     @Autowired
     private FeedRepository feedRepository;
@@ -32,30 +33,37 @@ public class FeedLikeServiceTest {
     private UserRepository userRepository;
 
     @Autowired
-    private FeedLikeService feedLikeService;
+    private FeedCommentRepository feedCommentRepository;
+
+    @Autowired
+    private FeedCommentLikeService feedCommentLikeService;
 
     @Nested
-    @DisplayName("피드 좋아요 테스트")
+    @DisplayName("피드 댓글 좋아요 테스트")
     public class feedTest {
 
         User user1;
-        FeedDto myFirstFeed;
+        FeedComment feedComment;
+        FeedCommentLike likeFeed;
 
         @BeforeEach
         void init() {
             user1 = userRepository.findById(7L)
                 .orElseThrow(() -> new RuntimeException("NOT FOUND USER"));
+            feedComment = feedCommentRepository.findById(3L).orElse(null);
         }
 
         @Test
-        @DisplayName("피드 좋아요")
+        @DisplayName("피드 댓글 좋아요")
         public void success_createFeedLike() {
-            FeedLike likeFeed = feedLikeService.saveFeedLike(user1, 15L);
+            likeFeed = feedCommentLikeService.saveFeedCommentLike(user1,
+                feedComment);
         }
+
         @Test
-        @DisplayName("피드 좋아요 취소")
+        @DisplayName("피드 댓글 좋아요 취소")
         public void success_deleteFeedLike() {
-            feedLikeService.deleteFeedLike(user1, 17L);
+            feedCommentLikeService.deleteFeedCommentLike(user1,feedComment.getId());
         }
     }
 }

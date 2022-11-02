@@ -63,7 +63,7 @@ public class FeedCommentLikeServiceTest {
         @Test
         @DisplayName("피드 댓글 좋아요 취소")
         public void success_deleteFeedLike() {
-            feedCommentLikeService.deleteFeedCommentLike(likeFeed);
+            feedCommentLikeService.deleteFeedCommentLike(user1,feedComment.getId());
         }
     }
 }

@@ -145,7 +145,7 @@ public class FeedServiceTest {
         @DisplayName("나의 피드 지역 검색 && 조회")
         @Transactional
         public void success_getFeeds() {
-            Page<Feed> feeds = feedService.getFeeds(user1, feedSearchCondition,
+            Page<Feed> feeds = feedService.getFeedList(user1, feedSearchCondition,
                 Pageable.ofSize(10));
             for (Feed feed : feeds) {
                 System.out.println(feed);
@@ -158,7 +158,7 @@ public class FeedServiceTest {
         @DisplayName("피드 지역 검색 && 조회")
         @Transactional
         public void success_getFeedList() {
-            Page<Feed> feeds = feedService.getFeedList(feedSearchCondition,
+            Page<Feed> feeds = feedService.getFeeds(feedSearchCondition,
                 Pageable.ofSize(10));
             for (Feed feed : feeds) {
                 System.out.println(feed);

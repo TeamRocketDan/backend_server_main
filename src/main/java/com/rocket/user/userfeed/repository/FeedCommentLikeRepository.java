@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public interface FeedCommentLikeRepository extends JpaRepository<FeedCommentLike, Long> {
 
-    Optional<FeedCommentLike> findByFeedCommentIdAndUserId(Long feedCommentId, Long userId);
+    Optional<FeedCommentLike> findByUserIdAndFeedCommentId(Long userId, Long feedCommentId);
 
     Long countByFeedCommentId(Long feedCommentId);
 }

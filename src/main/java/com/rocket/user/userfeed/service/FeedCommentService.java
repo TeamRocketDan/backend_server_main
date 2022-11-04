@@ -7,9 +7,12 @@ import static com.rocket.error.type.UserFeedErrorCode.FEED_COMMENT_UPDATE_FAIL;
 import com.rocket.error.exception.UserFeedException;
 import com.rocket.user.user.entity.User;
 import com.rocket.user.userfeed.dto.FeedCommentDto;
+import com.rocket.user.userfeed.dto.FeedCommentQDto;
 import com.rocket.user.userfeed.entity.Feed;
 import com.rocket.user.userfeed.entity.FeedComment;
 import com.rocket.user.userfeed.repository.FeedCommentRepository;
+import com.rocket.user.userfeed.repository.query.FeedQueryRepository;
+import com.rocket.utils.PagingResponse;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -23,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class FeedCommentService {
 
     private final FeedCommentRepository feedCommentRepository;
+    private final FeedQueryRepository feedQueryRepository;
 
     @Transactional
     public FeedComment createFeedComment(User user, Feed feed, FeedCommentDto feedCommentDto) {
@@ -41,6 +45,15 @@ public class FeedCommentService {
 
         return feedCommentRepository.findByFeedId(feedId
             , PageRequest.of(pageable.getPageNumber(), pageable.getPageSize()));
+    }
+
+    public PagingResponse<FeedCommentQDto> getFeedCommentsModify(
+            User user, Long feedId, Pageable pageable) {
+
+        return PagingResponse.fromEntity(
+                feedQueryRepository
+                        .feedCommentFindByFeedId(feedId, user, pageable)
+        );
     }
 
     @Transactional

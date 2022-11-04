@@ -1,22 +1,18 @@
 package com.rocket.user.userfeed.service;
 
-import static com.rocket.error.type.UserErrorCode.USER_DELETED_AT;
-import static com.rocket.error.type.UserErrorCode.USER_NOT_FOUND;
-import static com.rocket.error.type.UserFeedErrorCode.FEED_IMAGE_UPLOAD_COUNT_OVER;
-import static com.rocket.error.type.UserFeedErrorCode.FEED_NOT_FOUND;
-import static com.rocket.error.type.UserFeedErrorCode.FEED_UPDATE_FAIL;
-import static com.rocket.error.type.UserFeedErrorCode.FEED_USER_NOT_MATCH;
-
 import com.rocket.error.exception.UserException;
 import com.rocket.error.exception.UserFeedException;
 import com.rocket.error.type.UserFeedErrorCode;
 import com.rocket.user.user.entity.User;
 import com.rocket.user.user.repository.UserRepository;
 import com.rocket.user.userfeed.dto.FeedDto;
+import com.rocket.user.userfeed.dto.FeedListDto;
 import com.rocket.user.userfeed.dto.FeedSearchCondition;
 import com.rocket.user.userfeed.entity.Feed;
+import com.rocket.user.userfeed.entity.FeedImage;
 import com.rocket.user.userfeed.repository.FeedRepository;
-import java.util.List;
+import com.rocket.user.userfeed.repository.query.FeedQueryRepository;
+import com.rocket.utils.PagingResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -27,6 +23,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
+import static com.rocket.error.type.UserErrorCode.USER_DELETED_AT;
+import static com.rocket.error.type.UserErrorCode.USER_NOT_FOUND;
+import static com.rocket.error.type.UserFeedErrorCode.*;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -35,6 +39,7 @@ public class FeedService {
     private final FeedRepository feedRepository;
     private final UserRepository userRepository;
     private final FeedImageService feedImageService;
+    private final FeedQueryRepository feedQueryRepository;
 
     @Transactional(readOnly = true)
     public User getUser(String uuid) {
@@ -58,7 +63,7 @@ public class FeedService {
     }
 
     public Page<Feed> getFeedList(User user, FeedSearchCondition searchCondition,
-        Pageable pageable) {
+                                  Pageable pageable) {
 
         return feedRepository.findByUserIdAndRcate1EqualsAndRcate2EqualsOrderByCreatedAtDesc(
             user.getId(),
@@ -66,6 +71,30 @@ public class FeedService {
             , searchCondition.getRcate2()
             , PageRequest.of(pageable.getPageNumber(), pageable.getPageSize()));
     }
+
+    public PagingResponse<FeedListDto> getFeedListModify(
+            User user,
+            FeedSearchCondition searchCondition,
+            Pageable pageable,
+            boolean isMain) {
+
+        Page<FeedListDto> feeds = feedQueryRepository.findByRcate1EqualsAndRcate2EqualsOrderByCreatedAtDesc(
+                searchCondition,
+                user,
+                pageable,
+                isMain
+        );
+
+        List<Long> feedsId = feeds.stream()
+                .map(FeedListDto::getFeedId).collect(Collectors.toList());
+        List<FeedImage> feedImages = feedQueryRepository.findByAllFeedIn(feedsId);
+
+        mergeFeedList(feedImages, feeds);
+
+        return PagingResponse.fromEntity(feeds);
+    }
+
+
 
     public Page<Feed> getFeeds(FeedSearchCondition searchCondition,
         Pageable pageable) {
@@ -133,6 +162,18 @@ public class FeedService {
             feedRepository.delete(feed);
         } else {
             throw new UserFeedException(FEED_USER_NOT_MATCH);
+        }
+    }
+
+    private void mergeFeedList(List<FeedImage> feedImages, Page<FeedListDto> feedList) {
+        for (int i = 0; i < feedList.getContent().size(); i++) {
+            for (int j = 0; j < feedImages.size(); j++) {
+                if (Objects.equals(
+                        feedList.getContent().get(i).getFeedId(),
+                        feedImages.get(j).getFeed().getId())) {
+                    feedList.getContent().get(i).addImage(feedImages.get(j).getImagePaths());
+                }
+            }
         }
     }
 }

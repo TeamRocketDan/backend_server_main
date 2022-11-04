@@ -1,5 +1,6 @@
 package com.rocket.user.userfeed.repository;
 
+import com.rocket.user.userfeed.entity.Feed;
 import com.rocket.user.userfeed.entity.FeedImage;
 import java.util.List;
 import java.util.Optional;

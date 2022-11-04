@@ -4,6 +4,8 @@ package com.rocket.user.userfeed.entity;
 import com.rocket.config.jpa.entitiy.BaseEntity;
 import com.rocket.user.user.entity.User;
 import com.rocket.user.userfeed.dto.FeedCommentDto;
+
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.CascadeType;
@@ -45,8 +47,10 @@ public class FeedComment extends BaseEntity {
 
     private String comment; // 댓글
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "feedComment", fetch = FetchType.LAZY)
-    private List<FeedCommentLike> feedCommentLike = new ArrayList<>();
+    private LocalDateTime deletedAt;
+
+//    @OneToMany(cascade = CascadeType.ALL, mappedBy = "feedComment", fetch = FetchType.LAZY)
+//    private List<FeedCommentLike> feedCommentLike = new ArrayList<>();
 
     public void updateFeedComment(FeedCommentDto feedCommentDto) {
         this.comment = feedCommentDto.getComment();

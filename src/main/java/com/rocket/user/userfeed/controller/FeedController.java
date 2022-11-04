@@ -1,7 +1,5 @@
 package com.rocket.user.userfeed.controller;
 
-import static com.rocket.error.type.UserFeedErrorCode.FEED_COMMENT_USER_NOT_MATCH;
-
 import com.rocket.common.response.PageResponse;
 import com.rocket.error.exception.UserFeedException;
 import com.rocket.error.type.UserFeedErrorCode;
@@ -17,27 +15,22 @@ import com.rocket.user.userfeed.service.FeedLikeService;
 import com.rocket.user.userfeed.service.FeedService;
 import com.rocket.user.userfeed.vo.FeedCommentResponse;
 import com.rocket.user.userfeed.vo.FeedResponse;
-import com.rocket.utils.ApiUtils;
 import com.rocket.utils.ApiUtils.ApiResult;
 import com.rocket.utils.CommonRequestContext;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
-import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static com.rocket.error.type.UserFeedErrorCode.FEED_COMMENT_USER_NOT_MATCH;
+import static com.rocket.utils.ApiUtils.success;
 
 @RestController
 @RequiredArgsConstructor
@@ -59,6 +52,7 @@ public class FeedController {
     public ApiResult<FeedResponse> createFeed(
         @RequestPart("files") List<MultipartFile> multipartFiles
         , @RequestPart("feed") Feed feed) {
+        // FeedDto로 바꾸기
 
         User user = getUser();
 
@@ -68,7 +62,7 @@ public class FeedController {
 
         FeedDto newFeed = feedService.createFeed(user, feed, multipartFiles);
 
-        return ApiUtils.success(FeedResponse.builder()
+        return success(FeedResponse.builder()
             .feedId(String.valueOf(newFeed.getId()))
             .build());
     }
@@ -77,60 +71,39 @@ public class FeedController {
     public ApiResult<FeedResponse> getFeed(@PathVariable("feedId") String feedId) {
         User user = getUser();
         Feed feed = feedService.getFeed(Long.valueOf(feedId));
-        return ApiUtils.success(getUserFeedResponse(user, feed));
+        return success(getUserFeedResponse(user, feed));
     }
 
     @GetMapping("/feedList")
-    public ApiResult<PageResponse<FeedResponse>> getMyFeedList(FeedSearchCondition searchCondition
+    public ApiResult getMyFeedList(FeedSearchCondition searchCondition
         , Pageable pageable) {
 
         User user = getUser();
-        Page<Feed> feeds = feedService.getFeedList(user, searchCondition, pageable);
-        List<FeedResponse> feedResponses = new ArrayList<>();
 
-        for (Feed feed : feeds) {
-            feedResponses.add(getUserFeedResponse(user, feed));
-        }
-
-        return ApiUtils.success(PageResponse.<FeedResponse>builder()
-            .lastPage(feeds.isLast())
-            .firstPage(feeds.isFirst())
-            .totalPages(feeds.getTotalPages())
-            .totalElements(feeds.getTotalElements())
-            .size(pageable.getPageSize())
-            .currentPage(pageable.getPageNumber())
-            .content(feedResponses)
-            .build());
+        return success(
+                feedService.getFeedListModify(
+                        user,
+                        searchCondition,
+                        pageable,
+                        false
+                )
+        );
     }
 
     @GetMapping
-    public ApiResult<PageResponse<FeedResponse>> getFeeds(FeedSearchCondition searchCondition
+    public ApiResult getFeeds(FeedSearchCondition searchCondition
         , Pageable pageable) {
 
         User user = getUser();
 
-        Page<Feed> feeds = feedService.getFeeds(searchCondition, pageable);
-        List<FeedResponse> feedResponses = new ArrayList<>();
-
-        if (ObjectUtils.isEmpty(user)) {
-            for (Feed feed : feeds) {
-                feedResponses.add(getFeedResponse(feed));
-            }
-        } else {
-            for (Feed feed : feeds) {
-                feedResponses.add(getUserFeedResponse(user, feed));
-            }
-        }
-
-        return ApiUtils.success(PageResponse.<FeedResponse>builder()
-            .lastPage(feeds.isLast())
-            .firstPage(feeds.isFirst())
-            .totalPages(feeds.getTotalPages())
-            .totalElements(feeds.getTotalElements())
-            .size(pageable.getPageSize())
-            .currentPage(pageable.getPageNumber())
-            .content(feedResponses)
-            .build());
+        return success(
+                feedService.getFeedListModify(
+                        user,
+                        searchCondition,
+                        pageable,
+                        true
+                )
+        );
     }
 
     @PatchMapping(value = "/{feedId}")
@@ -146,7 +119,7 @@ public class FeedController {
             feedService.updateFeed(feed.getId(), updateFeed);
         }
 
-        return ApiUtils.success(FeedResponse.builder()
+        return success(FeedResponse.builder()
             .feedId(String.valueOf(feed.getId()))
             .build());
     }
@@ -155,21 +128,21 @@ public class FeedController {
     public ApiResult deleteFeed(@PathVariable("feedId") String feedId) {
         User user = getUser();
         feedService.deleteFeed(user.getId(), Long.valueOf(feedId));
-        return ApiUtils.success(null);
+        return success(null);
     }
 
     @PostMapping("/{feedId}/like")
     public ApiResult saveFeedLike(@PathVariable("feedId") String feedId) {
         User user = getUser();
         feedLikeService.saveFeedLike(user, Long.valueOf(feedId));
-        return ApiUtils.success(null);
+        return success(null);
     }
 
     @DeleteMapping("/{feedId}/like")
     public ApiResult deleteFeedLike(@PathVariable("feedId") String feedId) {
         User user = getUser();
         feedLikeService.deleteFeedLike(user, Long.valueOf(feedId));
-        return ApiUtils.success(null);
+        return success(null);
     }
 
     @PostMapping("/{feedId}/comments")
@@ -185,7 +158,7 @@ public class FeedController {
 
         FeedComment feedComment = feedCommentService.createFeedComment(user, feed, feedCommentDto);
 
-        return ApiUtils.success(FeedCommentResponse.builder()
+        return success(FeedCommentResponse.builder()
             .userName(user.getUsername())
             .feedCommentId(String.valueOf(feedComment.getId()))
             .comment(feedComment.getComment())
@@ -193,33 +166,38 @@ public class FeedController {
     }
 
     @GetMapping("/{feedId}/comments")
-    public ApiResult<PageResponse<FeedCommentResponse>> getFeedComments(
-        @PathVariable("feedId") String feedId, Pageable pageable) {
+    public ApiResult getFeedComments(
+        @PathVariable("feedId") Long feedId, Pageable pageable) {
 
         User user = getUser();
-        Feed feed = feedService.getFeed(Long.valueOf(feedId));
+        Feed feed = feedService.getFeed(feedId);
 
         if (feed == null) {
             throw new UserFeedException(UserFeedErrorCode.FEED_NOT_FOUND);
         }
 
-        Page<FeedComment> feedComments = feedCommentService.getFeedComments(
-            Long.valueOf(feedId), pageable);
-        List<FeedCommentResponse> comments = new ArrayList<>();
+        return success(
+                feedCommentService
+                        .getFeedCommentsModify(user, feedId, pageable)
+        );
 
-        for (FeedComment feedComment : feedComments) {
-            comments.add(getFeedCommentResponse(user, feedComment));
-        }
-
-        return ApiUtils.success(PageResponse.<FeedCommentResponse>builder()
-            .lastPage(feedComments.isLast())
-            .firstPage(feedComments.isFirst())
-            .totalPages(feedComments.getTotalPages())
-            .totalElements(feedComments.getTotalElements())
-            .size(pageable.getPageSize())
-            .currentPage(pageable.getPageNumber())
-            .content(comments)
-            .build());
+//        Page<FeedComment> feedComments = feedCommentService.getFeedComments(
+//            Long.valueOf(feedId), pageable);
+//        List<FeedCommentResponse> comments = new ArrayList<>();
+//
+//        for (FeedComment feedComment : feedComments) {
+//            comments.add(getFeedCommentResponse(user, feedComment));
+//        }
+//
+//        return success(PageResponse.<FeedCommentResponse>builder()
+//            .lastPage(feedComments.isLast())
+//            .firstPage(feedComments.isFirst())
+//            .totalPages(feedComments.getTotalPages())
+//            .totalElements(feedComments.getTotalElements())
+//            .size(pageable.getPageSize())
+//            .currentPage(pageable.getPageNumber())
+//            .content(comments)
+//            .build());
     }
 
     @PatchMapping(value = "/{feedId}/comments/{commentId}")
@@ -236,7 +214,7 @@ public class FeedController {
             feedCommentService.updateFeedComment(Long.valueOf(commentId), updateFeedComment);
         }
 
-        return ApiUtils.success(FeedCommentResponse.builder()
+        return success(FeedCommentResponse.builder()
             .userName(user.getUsername())
             .comment(updateFeedComment.getComment())
             .build());
@@ -258,7 +236,7 @@ public class FeedController {
 
         feedCommentService.deleteFeedComment(feedComment);
 
-        return ApiUtils.success(FeedCommentDto.builder()
+        return success(FeedCommentDto.builder()
             .feedCommentId(feedComment.getId())
             .comment(feedComment.getComment())
             .build());
@@ -273,7 +251,7 @@ public class FeedController {
         feedCommentLikeService.saveFeedCommentLike(user, feedComment);
 
         // TODO: 실패 케이스에 대해서 구현 필요
-        return ApiUtils.success(null);
+        return success(null);
     }
 
     @DeleteMapping("/{feedId}/comments/{commentId}/like")
@@ -281,7 +259,7 @@ public class FeedController {
         , @PathVariable("commentId") String commentId) {
         User user = getUser();
         feedCommentLikeService.deleteFeedCommentLike(user, Long.valueOf(commentId));
-        return ApiUtils.success(null);
+        return success(null);
     }
 
     private FeedResponse getUserFeedResponse(User user, Feed feed) {
@@ -341,7 +319,7 @@ public class FeedController {
             .profileImagePath(comment.getUser().getProfileImage())
             .userName(comment.getUser().getUsername())
             .comment(comment.getComment())
-            .feedCommentLikeCnt((long) comment.getFeedCommentLike().size())
+//            .feedCommentLikeCnt((long) comment.getFeedCommentLike().size())
             .isLikeFeedComment(feedCommentLikeService.isFeedCommentLike(user, comment.getId()))
             .build();
     }

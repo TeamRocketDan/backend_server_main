@@ -7,6 +7,7 @@ import com.rocket.user.user.entity.Follow;
 import com.rocket.user.user.entity.User;
 import com.rocket.user.user.repository.FollowRepository;
 import com.rocket.user.user.repository.UserRepository;
+import com.rocket.user.user.repository.query.FollowQueryRepository;
 import com.rocket.user.user.service.FollowService;
 import com.rocket.utils.CommonRequestContext;
 import com.rocket.utils.PagingResponse;
@@ -28,6 +29,7 @@ public class FollowServiceImpl implements FollowService {
 
     private final UserRepository userRepository;
     private final FollowRepository followRepository;
+    private final FollowQueryRepository followQueryRepository;
     private final CommonRequestContext commonRequestContext;
 
     @Override
@@ -55,20 +57,20 @@ public class FollowServiceImpl implements FollowService {
 
     @Override
     @Transactional
-    public void unFollowing(Long followerUserId) {
+    public void unFollowing(Long followingUserId) {
         User following = getUserByUuid(commonRequestContext.getUuid());
-        User follower = getUserById(followerUserId);
+        User follower = getUserById(followingUserId);
 
-        followRepository.deleteByFollowerAndFollowing(follower, following);
+        followQueryRepository.deleteByFollowerAndFollowing(follower, following);
     }
 
     @Override
     @Transactional
-    public void unFollower(Long followingUserId) {
+    public void unFollower(Long followerUserId) {
         User follower = getUserByUuid(commonRequestContext.getUuid());
-        User following = getUserById(followingUserId);
+        User following = getUserById(followerUserId);
 
-        followRepository.deleteByFollowerAndFollowing(follower, following);
+        followQueryRepository.deleteByFollowerAndFollowing(follower, following);
     }
 
     @Override
@@ -76,7 +78,7 @@ public class FollowServiceImpl implements FollowService {
     public PagingResponse followerList(Pageable pageable) {
         User user = getUserByUuid(commonRequestContext.getUuid());
 
-        Page<Follow> followers = followRepository.findByFollower(user, pageable);
+        Page<Follow> followers = followQueryRepository.findByFollower(user, pageable);
 
         return PagingResponse.fromEntity(
                 followers.map(follow -> FollowerDto.fromEntity(follow))
@@ -88,7 +90,7 @@ public class FollowServiceImpl implements FollowService {
     public PagingResponse followingList(Pageable pageable) {
         User user = getUserByUuid(commonRequestContext.getUuid());
 
-        Page<Follow> followings = followRepository.findByFollowing(user, pageable);
+        Page<Follow> followings = followQueryRepository.findByFollowing(user, pageable);
 
         return PagingResponse.fromEntity(
                 followings.map(follow -> FollowingDto.fromEntity(follow))

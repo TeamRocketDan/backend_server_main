@@ -43,13 +43,13 @@ public class AuthController {
     private final RedisTemplate redisTemplate;
 
     @GetMapping("/healthcheck")
-    public ApiResult healthcheck() {
+    public ApiResult<?> healthcheck() {
 
         return success(null);
     }
 
     @PostMapping("/logout")
-    public ApiResult logout(HttpServletRequest request) {
+    public ApiResult<?> logout(HttpServletRequest request) {
         String accessToken = HeaderUtil.getAccessToken(request);
         AuthToken authToken = tokenProvider.convertAuthToken(accessToken);
 
@@ -59,10 +59,9 @@ public class AuthController {
 //            }
 
             long expiration = authToken.getExpiration(authToken.getToken());
-            redisTemplate.opsForValue()
-                    .set(authToken.getToken(), "logout", expiration, TimeUnit.MILLISECONDS);
+            redisTemplate.opsForValue().set(authToken.getToken(), "logout", expiration, TimeUnit.MILLISECONDS);
         } catch (JwtException e) {
-            log.info("error : {}",  e);
+            log.error("error : ",  e);
         }
 
         return success(null);
@@ -70,7 +69,7 @@ public class AuthController {
 
     @GetMapping("/refresh")
     @Transactional
-    public ApiResult refreshToken (HttpServletRequest request) {
+    public ApiResult<TokenResponse> refreshToken (HttpServletRequest request) {
         String accessToken = HeaderUtil.getAccessToken(request);
         AuthToken authToken = tokenProvider.convertAuthToken(accessToken);
 

@@ -8,6 +8,7 @@ import com.rocket.error.type.UserErrorCode;
 import com.rocket.user.user.dto.UserMypageDto;
 import com.rocket.user.user.entity.Follow;
 import com.rocket.user.user.entity.User;
+import com.rocket.user.user.repository.query.FollowQueryRepository;
 import com.rocket.user.user.repository.query.UserQueryRepository;
 import org.hibernate.dialect.MySQL57Dialect;
 import org.junit.jupiter.api.DisplayName;
@@ -26,7 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @DataJpaTest
 @Transactional
 @Import({
-        UserQueryRepository.class,
+        FollowQueryRepository.class,
         JpaAuditingConfiguration.class,
         QueryDslConfiguration.class,
         MySQL57Dialect.class,
@@ -37,6 +38,9 @@ public class FollowRepositoryTest {
 
     @Autowired
     private FollowRepository followRepository;
+
+    @Autowired
+    private FollowQueryRepository followQueryRepository;
 
     @Autowired UserRepository userRepository;
 
@@ -72,7 +76,7 @@ public class FollowRepositoryTest {
                 .orElseThrow(() -> new UserException(USER_NOT_FOUND));
 
         // when
-        followRepository.deleteByFollowerAndFollowing(follower, following);
+        followQueryRepository.deleteByFollowerAndFollowing(follower, following);
         boolean exists = followRepository.existsByFollowerAndFollowing(follower, following);
 
         //then
@@ -91,7 +95,7 @@ public class FollowRepositoryTest {
                 .orElseThrow(() -> new UserException(USER_NOT_FOUND));
 
         // when
-        followRepository.deleteByFollowerAndFollowing(follower, following);
+        followQueryRepository.deleteByFollowerAndFollowing(follower, following);
         boolean exists = followRepository.existsByFollowerAndFollowing(follower, following);
 
         //then

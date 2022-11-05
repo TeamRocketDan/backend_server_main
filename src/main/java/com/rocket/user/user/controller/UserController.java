@@ -3,6 +3,7 @@ package com.rocket.user.user.controller;
 import com.rocket.error.exception.UserException;
 import com.rocket.error.type.UserErrorCode;
 import com.rocket.user.user.dto.UpdateNickname;
+import com.rocket.user.user.dto.UserMypageDto;
 import com.rocket.user.user.service.FollowService;
 import com.rocket.user.user.service.UserService;
 import com.rocket.utils.ApiUtils.ApiResult;
@@ -29,13 +30,13 @@ public class UserController {
     private final FollowService followService;
 
     @GetMapping("/mypage")
-    public ApiResult mypage() {
+    public ApiResult<UserMypageDto> mypage() {
 
         return success(userService.mypage());
     }
 
     @PatchMapping("/profileImage")
-    public ApiResult updateProfileImage(List<MultipartFile> multipartFiles) {
+    public ApiResult<HashMap<String, Object>> updateProfileImage(List<MultipartFile> multipartFiles) {
 
         if (multipartFiles == null || multipartFiles.size() <= 0) {
             throw new UserException(USER_PROFILE_LIST_NOT_ZERO);
@@ -47,7 +48,7 @@ public class UserController {
     }
 
     @PostMapping("/{userId}/following")
-    public ApiResult following(
+    public ApiResult<?> following(
             @PathVariable("userId") Long userId) {
 
         followService.following(userId);
@@ -55,7 +56,7 @@ public class UserController {
     }
 
     @DeleteMapping("/{userId}/following")
-    public ApiResult unFollowing(
+    public ApiResult<?> unFollowing(
             @PathVariable("userId") Long userId) {
 
         followService.unFollowing(userId);
@@ -63,7 +64,7 @@ public class UserController {
     }
 
     @DeleteMapping("/{userId}/follower")
-    public ApiResult unFollower(
+    public ApiResult<?> unFollower(
             @PathVariable("userId") Long userId) {
 
         followService.unFollower(userId);
@@ -71,7 +72,7 @@ public class UserController {
     }
 
     @PatchMapping("/nickname")
-    public ApiResult updateNickname(@RequestBody @Validated UpdateNickname updateNickname) {
+    public ApiResult<HashMap<String, Object>> updateNickname(@RequestBody @Validated UpdateNickname updateNickname) {
 
         return success(
                 new HashMap<>() {{

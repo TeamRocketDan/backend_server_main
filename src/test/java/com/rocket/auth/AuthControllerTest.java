@@ -95,27 +95,5 @@ public class AuthControllerTest {
                                 .andDo(print());
                 }
         }
-
-        @Nested
-        @DisplayName("로그아웃 테스트")
-        class logout {
-
-                @Test
-                @DisplayName("로그아웃 실패 - 유효한 토큰이 아닐 때")
-                public void invalidAccessToken() throws Exception {
-                        // given
-
-                        // when
-
-                        // then
-                        mockMvc.perform(post("/api/v1/auth/logout")
-                                        .contentType(MediaType.APPLICATION_JSON)
-                                        .header(HttpHeaders.AUTHORIZATION, "Bearer dqwdqwdqdwwd"))
-                                .andExpect(status().isBadRequest())
-                                .andExpect(jsonPath("$.success").value(false))
-                                .andExpect(jsonPath("$.result").isEmpty())
-                                .andExpect(jsonPath("$.errorMessage").value(INVALID_ACCESS_TOKEN.getMessage()))
-                                .andDo(print());
-                }
-        }
+        
 }

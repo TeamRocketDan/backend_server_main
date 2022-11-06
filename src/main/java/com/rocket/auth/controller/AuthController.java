@@ -77,9 +77,13 @@ public class AuthController {
             throw new AuthException(INVALID_ACCESS_TOKEN);
         }
 
-        Claims claims = authToken.getExpiredTokenClaims(request);
+        Date now = new Date();
+        long nowTime = now.getTime();
+
+        Claims claims = authToken.getTokenClaims(request);
+        long accessTokenExpireTime = claims.getExpiration().getTime();
         // token이 만료가 아니면 token expire date - 5 minute분으로 비교 해야 할 거 같음
-        if (claims == null) {
+        if (accessTokenExpireTime - nowTime > 300000) {
             throw new AuthException(NOT_YET_EXPIRED_TOKEN);
         }
 
@@ -96,7 +100,7 @@ public class AuthController {
             throw new AuthException(INVALID_REFRESH_TOKEN);
         }
 
-        Date now = new Date();
+
         AuthToken newAccessToken = tokenProvider.createAuthToken(
                 userId,
                 roleType.getCode(),
@@ -104,7 +108,7 @@ public class AuthController {
         );
 
         long refreshTokenExpireTime = authRefreshToken.getTokenClaims(request).getExpiration().getTime();
-        long nowTime = now.getTime();
+
         long validTime = refreshTokenExpireTime - nowTime;
 
         if (validTime <= 0) {

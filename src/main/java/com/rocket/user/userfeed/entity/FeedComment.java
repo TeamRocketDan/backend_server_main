@@ -49,8 +49,8 @@ public class FeedComment extends BaseEntity {
 
     private LocalDateTime deletedAt;
 
-//    @OneToMany(cascade = CascadeType.ALL, mappedBy = "feedComment", fetch = FetchType.LAZY)
-//    private List<FeedCommentLike> feedCommentLike = new ArrayList<>();
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "feedComment", fetch = FetchType.LAZY)
+    private List<FeedCommentLike> feedCommentLike = new ArrayList<>();
 
     public void updateFeedComment(FeedCommentDto feedCommentDto) {
         this.comment = feedCommentDto.getComment();

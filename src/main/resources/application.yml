@@ -44,7 +44,7 @@ spring:
             clientSecret: ${KAKAO_CLIENT_SECRET}
             clientAuthenticationMethod: post
             authorizationGrantType: authorization_code
-            redirectUri: ${KAKAO_REDIRECT_URI}
+            redirectUri: ${KAKAO_REDIRECT_URI_LOCAL}
             scope:
               - profile_nickname
               - profile_image
@@ -75,7 +75,7 @@ spring:
             userNameAttribute: response
 
 cors:
-  allowed-origins: http://localhost:3000,https://rocket-dan.netlify.app
+  allowed-origins: http://localhost:3000,https://rocket-dan.netlify.app,https://effervescent-wisp-a10a03.netlify.app
   allowed-methods: GET,POST,PUT,DELETE,OPTIONS,PATCH
   allowed-headers: '*'
   max-age: 3600
@@ -92,6 +92,7 @@ app:
     authorizedRedirectUris:
       - http://localhost:3000/oauth2/redirect
       - https://rocket-dan.netlify.app/oauth2/redirect
+      - https://effervescent-wisp-a10a03.netlify.app/oauth2/redirect
 
 cloud:
   aws:

@@ -75,7 +75,7 @@ spring:
             userNameAttribute: response
 
 cors:
-  allowed-origins: 'http://localhost:3000'
+  allowed-origins: http://localhost:3000,https://rocket-dan.netlify.app
   allowed-methods: GET,POST,PUT,DELETE,OPTIONS,PATCH
   allowed-headers: '*'
   max-age: 3600
@@ -91,6 +91,7 @@ app:
   oauth2:
     authorizedRedirectUris:
       - http://localhost:3000/oauth2/redirect
+      - https://rocket-dan.netlify.app/oauth2/redirect
 
 cloud:
   aws:

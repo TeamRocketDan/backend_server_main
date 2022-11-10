@@ -15,6 +15,7 @@ import com.rocket.config.properties.CorsProperties;
 import com.rocket.user.user.repository.UserRefreshTokenRepository;
 import com.rocket.utils.CommonRequestContext;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.session.DefaultCookieSerializerCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.RedisTemplate;

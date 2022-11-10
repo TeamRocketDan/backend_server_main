@@ -44,7 +44,7 @@ spring:
             clientSecret: ${KAKAO_CLIENT_SECRET}
             clientAuthenticationMethod: post
             authorizationGrantType: authorization_code
-            redirectUri: ${KAKAO_REDIRECT_URI_LOCAL}
+            redirectUri: ${KAKAO_REDIRECT_URI}
             scope:
               - profile_nickname
               - profile_image

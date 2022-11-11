@@ -75,7 +75,7 @@ spring:
             userNameAttribute: response
 
 cors:
-  allowed-origins: http://localhost:3000,https://rocket-dan.netlify.app,https://effervescent-wisp-a10a03.netlify.app
+  allowed-origins: http://localhost:3000,https://rocket-dan.netlify.app,https://effervescent-wisp-a10a03.netlify.app,http://3.35.26.86/
   allowed-methods: GET,POST,PUT,DELETE,OPTIONS,PATCH
   allowed-headers: '*'
   max-age: 3600
@@ -93,6 +93,7 @@ app:
       - http://localhost:3000/oauth2/redirect
       - https://rocket-dan.netlify.app/oauth2/redirect
       - https://effervescent-wisp-a10a03.netlify.app/oauth2/redirect
+      - http://3.35.26.86/oauth2/redirect
 
 cloud:
   aws:

@@ -31,4 +31,4 @@
 ![teamrocket_flow](https://user-images.githubusercontent.com/67041069/201720670-b2ed40b8-da11-4f89-833b-fd8573a47676.png)
 
 ## 로켓단의 한국정복 기술 스택
-![teamrocket_stack](https://user-images.githubusercontent.com/67041069/201720679-cc43212e-969b-4577-9bd8-2bf195cd72ce.png))
+![teamrocket_stack](https://user-images.githubusercontent.com/67041069/201720679-cc43212e-969b-4577-9bd8-2bf195cd72ce.png)

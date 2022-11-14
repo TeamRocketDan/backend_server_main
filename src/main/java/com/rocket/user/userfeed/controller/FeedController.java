@@ -1,6 +1,8 @@
 package com.rocket.user.userfeed.controller;
 
-import com.rocket.common.response.PageResponse;
+import static com.rocket.error.type.UserFeedErrorCode.FEED_COMMENT_USER_NOT_MATCH;
+import static com.rocket.utils.ApiUtils.success;
+
 import com.rocket.error.exception.UserFeedException;
 import com.rocket.error.type.UserFeedErrorCode;
 import com.rocket.user.user.entity.User;
@@ -17,20 +19,14 @@ import com.rocket.user.userfeed.vo.FeedCommentResponse;
 import com.rocket.user.userfeed.vo.FeedResponse;
 import com.rocket.utils.ApiUtils.ApiResult;
 import com.rocket.utils.CommonRequestContext;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static com.rocket.error.type.UserFeedErrorCode.FEED_COMMENT_USER_NOT_MATCH;
-import static com.rocket.utils.ApiUtils.success;
 
 @RestController
 @RequiredArgsConstructor
@@ -52,7 +48,6 @@ public class FeedController {
     public ApiResult<FeedResponse> createFeed(
         @RequestPart("files") List<MultipartFile> multipartFiles
         , @RequestPart("feed") Feed feed) {
-        // FeedDto로 바꾸기
 
         User user = getUser();
 
@@ -81,12 +76,12 @@ public class FeedController {
         User user = getUser();
 
         return success(
-                feedService.getFeedListModify(
-                        user,
-                        searchCondition,
-                        pageable,
-                        false
-                )
+            feedService.getFeedListModify(
+                user,
+                searchCondition,
+                pageable,
+                false
+            )
         );
     }
 
@@ -97,12 +92,12 @@ public class FeedController {
         User user = getUser();
 
         return success(
-                feedService.getFeedListModify(
-                        user,
-                        searchCondition,
-                        pageable,
-                        true
-                )
+            feedService.getFeedListModify(
+                user,
+                searchCondition,
+                pageable,
+                true
+            )
         );
     }
 
@@ -177,8 +172,8 @@ public class FeedController {
         }
 
         return success(
-                feedCommentService
-                        .getFeedCommentsModify(user, feedId, pageable)
+            feedCommentService
+                .getFeedCommentsModify(user, feedId, pageable)
         );
 
 //        Page<FeedComment> feedComments = feedCommentService.getFeedComments(

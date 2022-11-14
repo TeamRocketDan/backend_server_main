@@ -38,7 +38,6 @@ public class Feed extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user; // FK
-
     private String title; // 제목
     private String content; // 내용
     private String rcate1; // 지역 1 Depth, 시도 단위

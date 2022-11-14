@@ -187,10 +187,10 @@ public class FeedQueryRepository {
 
     private BooleanExpression eqRcate(FeedSearchCondition feedSearchCondition) {
 
-        if (feedSearchCondition.getRcate1() == null) {
+        if (ObjectUtils.isEmpty(feedSearchCondition.getRcate1())) {
             return null;
-        } else if (feedSearchCondition.getRcate1() != null
-            && feedSearchCondition.getRcate2() == null) {
+        } else if (!ObjectUtils.isEmpty(feedSearchCondition.getRcate1())
+            && ObjectUtils.isEmpty(feedSearchCondition.getRcate2())) {
             return feed.rcate1.eq(feedSearchCondition.getRcate1());
         }
 

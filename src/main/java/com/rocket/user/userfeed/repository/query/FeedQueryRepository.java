@@ -178,7 +178,6 @@ public class FeedQueryRepository {
         if (ObjectUtils.isEmpty(user)) {
             return Expressions.FALSE;
         }
-
         return selectOne()
             .from(follow)
             .where(

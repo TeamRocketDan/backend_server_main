@@ -39,7 +39,7 @@ public class FeedResponse {
 
     private boolean isLikeFeed;
 
-//    private boolean isLikeFeedComment;
+    private boolean isFollow;
 
     private Long feedLikeCnt;
 

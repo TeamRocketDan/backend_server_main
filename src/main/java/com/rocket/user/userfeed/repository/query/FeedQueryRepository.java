@@ -2,6 +2,7 @@ package com.rocket.user.userfeed.repository.query;
 
 import static com.querydsl.jpa.JPAExpressions.select;
 import static com.querydsl.jpa.JPAExpressions.selectOne;
+import static com.rocket.user.user.entity.QFollow.follow;
 import static com.rocket.user.user.entity.QUser.user;
 import static com.rocket.user.userfeed.entity.QFeed.feed;
 import static com.rocket.user.userfeed.entity.QFeedComment.feedComment;
@@ -57,6 +58,7 @@ public class FeedQueryRepository {
                     feed.longitude,
                     feed.latitude,
                     isLike(userEntity),
+                    isFollow(userEntity),
                     select(feedLike.count())
                         .from(feedLike)
                         .where(feedLike.feed.eq(feed)),
@@ -128,7 +130,6 @@ public class FeedQueryRepository {
                             feedCommentLike.feedComment.eq(feedComment),
                             feedCommentLike.user.eq(userEntity)
                         ).exists()
-
                 )
             )
             .from(feedComment)
@@ -173,6 +174,19 @@ public class FeedQueryRepository {
             ).exists();
     }
 
+    private Expression<Boolean> isFollow(User user) {
+        if (ObjectUtils.isEmpty(user)) {
+            return Expressions.FALSE;
+        }
+
+        return selectOne()
+            .from(follow)
+            .where(
+                follow.follower.eq(feed.user)
+                , followUserEqFeedUser(user)
+            ).exists();
+    }
+
     private BooleanExpression feedUserEqUser(User user) {
         return user == null ? null : feed.user.eq(user);
     }
@@ -183,6 +197,10 @@ public class FeedQueryRepository {
 
     private BooleanExpression feedLikeUserEqUser(User user) {
         return user == null ? null : feedLike.user.eq(user);
+    }
+
+    private BooleanExpression followUserEqFeedUser(User user) {
+        return user == null ? null : follow.following.eq(user);
     }
 
     private BooleanExpression eqRcate(FeedSearchCondition feedSearchCondition) {

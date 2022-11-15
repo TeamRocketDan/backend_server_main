@@ -26,12 +26,16 @@ public class FeedListDto {
     private String longitude;
     private String latitude;
     private Boolean isLikeFeed;
+    private Boolean isFollow;
     private Long feedLikeCnt;
     private Long feedCommentCnt;
     private List<String> feedImages = new ArrayList<>();
 
     @QueryProjection
-    public FeedListDto(Long userId, Long feedId, String profileImagePath, String userName, String nickname, String email, String title, String content, String rcate1, String rcate2, String longitude, String latitude, Boolean isLikeFeed, Long feedLikeCnt, Long feedCommentCnt) {
+    public FeedListDto(Long userId, Long feedId, String profileImagePath, String userName,
+        String nickname, String email, String title, String content, String rcate1, String rcate2,
+        String longitude, String latitude, Boolean isLikeFeed, Boolean isFollow, Long feedLikeCnt,
+        Long feedCommentCnt) {
 
         this.userId = userId;
         this.feedId = feedId;
@@ -46,6 +50,7 @@ public class FeedListDto {
         this.longitude = longitude;
         this.latitude = latitude;
         this.isLikeFeed = isLikeFeed;
+        this.isFollow = isFollow;
         this.feedLikeCnt = feedLikeCnt;
         this.feedCommentCnt = feedCommentCnt;
     }

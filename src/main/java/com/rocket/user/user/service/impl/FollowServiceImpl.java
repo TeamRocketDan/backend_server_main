@@ -1,5 +1,10 @@
 package com.rocket.user.user.service.impl;
 
+import static com.rocket.error.type.UserErrorCode.USER_ALREADY_FOLLOWING;
+import static com.rocket.error.type.UserErrorCode.USER_DELETED_AT;
+import static com.rocket.error.type.UserErrorCode.USER_IMPOSSIBLE_FOLLOWING;
+import static com.rocket.error.type.UserErrorCode.USER_NOT_FOUND;
+
 import com.rocket.error.exception.UserException;
 import com.rocket.user.user.dto.FollowerDto;
 import com.rocket.user.user.dto.FollowingDto;
@@ -9,19 +14,15 @@ import com.rocket.user.user.repository.FollowRepository;
 import com.rocket.user.user.repository.UserRepository;
 import com.rocket.user.user.repository.query.FollowQueryRepository;
 import com.rocket.user.user.service.FollowService;
+import com.rocket.user.userfeed.entity.Feed;
 import com.rocket.utils.CommonRequestContext;
 import com.rocket.utils.PagingResponse;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-
-import static com.rocket.error.type.UserErrorCode.*;
 
 @Repository
 @RequiredArgsConstructor
@@ -48,9 +49,9 @@ public class FollowServiceImpl implements FollowService {
         }
 
         Follow follow = Follow.builder()
-                .following(following)
-                .follower(follower)
-                .build();
+            .following(following)
+            .follower(follower)
+            .build();
 
         followRepository.save(follow);
     }
@@ -73,6 +74,10 @@ public class FollowServiceImpl implements FollowService {
         followQueryRepository.deleteByFollowerAndFollowing(follower, following);
     }
 
+    public boolean getIsFollow(User user, Feed feed) {
+        return followRepository.existsByFollowerAndFollowing(user, feed.getUser());
+    }
+
     @Override
     @Transactional(readOnly = true)
     public PagingResponse followerList(Pageable pageable) {
@@ -81,7 +86,7 @@ public class FollowServiceImpl implements FollowService {
         Page<Follow> followers = followQueryRepository.findByFollower(user, pageable);
 
         return PagingResponse.fromEntity(
-                followers.map(follow -> FollowerDto.fromEntity(follow))
+            followers.map(follow -> FollowerDto.fromEntity(follow))
         );
     }
 
@@ -93,13 +98,13 @@ public class FollowServiceImpl implements FollowService {
         Page<Follow> followings = followQueryRepository.findByFollowing(user, pageable);
 
         return PagingResponse.fromEntity(
-                followings.map(follow -> FollowingDto.fromEntity(follow))
+            followings.map(follow -> FollowingDto.fromEntity(follow))
         );
     }
 
     private User getUserByUuid(String uuid) {
         User user = userRepository.findByUuid(uuid)
-                .orElseThrow(() -> new UserException(USER_NOT_FOUND));
+            .orElseThrow(() -> new UserException(USER_NOT_FOUND));
 
         validateUser(user);
 
@@ -108,7 +113,7 @@ public class FollowServiceImpl implements FollowService {
 
     private User getUserById(Long id) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new UserException(USER_NOT_FOUND));
+            .orElseThrow(() -> new UserException(USER_NOT_FOUND));
 
         validateUser(user);
 

@@ -6,6 +6,7 @@ import static com.rocket.utils.ApiUtils.success;
 import com.rocket.error.exception.UserFeedException;
 import com.rocket.error.type.UserFeedErrorCode;
 import com.rocket.user.user.entity.User;
+import com.rocket.user.user.service.impl.FollowServiceImpl;
 import com.rocket.user.userfeed.dto.FeedCommentDto;
 import com.rocket.user.userfeed.dto.FeedDto;
 import com.rocket.user.userfeed.dto.FeedSearchCondition;
@@ -40,6 +41,8 @@ public class FeedController {
     private final FeedCommentService feedCommentService;
 
     private final FeedCommentLikeService feedCommentLikeService;
+
+    private final FollowServiceImpl followService;
 
     private final CommonRequestContext commonRequestContext;
 
@@ -265,7 +268,6 @@ public class FeedController {
             .profileImagePath(feed.getUser().getProfileImage())
             .userName(feed.getUser().getUsername())
             .nickname(feed.getUser().getNickname())
-
             .title(feed.getTitle())
             .content(feed.getContent())
             .rcate1(feed.getRcate1())
@@ -273,7 +275,7 @@ public class FeedController {
             .longitude(feed.getLongitude())
             .latitude(feed.getLatitude())
             .isLikeFeed(feedLikeService.getFeedLike(user, feed.getId()))
-
+            .isFollow(followService.getIsFollow(user, feed))
             .feedLikeCnt((long) feed.getFeedLike().size())
             .feedCommentCnt((long) feed.getFeedComment().size())
             .feedImages(feed.getFeedImage().stream()

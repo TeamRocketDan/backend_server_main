@@ -181,7 +181,7 @@ public class FeedQueryRepository {
         return selectOne()
             .from(follow)
             .where(
-                follow.following.eq(feed.user)
+                follow.follower.eq(feed.user)
                 , followUserEqFeedUser(user)
             ).exists();
     }
@@ -199,7 +199,7 @@ public class FeedQueryRepository {
     }
 
     private BooleanExpression followUserEqFeedUser(User user) {
-        return user == null ? null : follow.follower.eq(user);
+        return user == null ? null : follow.following.eq(user);
     }
 
     private BooleanExpression eqRcate(FeedSearchCondition feedSearchCondition) {

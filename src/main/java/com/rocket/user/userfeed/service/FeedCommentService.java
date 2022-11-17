@@ -38,7 +38,12 @@ public class FeedCommentService {
     }
 
     public FeedComment getFeedComment(Long id) {
-        return feedCommentRepository.findById(id).orElse(null);
+        FeedComment feedComment = feedCommentRepository.findById(id).orElse(null);
+
+        if (feedComment == null) {
+            throw new UserFeedException(FEED_COMMENT_NOT_FOUND);
+        }
+        return feedComment;
     }
 
     public Page<FeedComment> getFeedComments(Long feedId, Pageable pageable) {
@@ -48,11 +53,11 @@ public class FeedCommentService {
     }
 
     public PagingResponse<FeedCommentQDto> getFeedCommentsModify(
-            User user, Long feedId, Pageable pageable) {
+        User user, Long feedId, Pageable pageable) {
 
         return PagingResponse.fromEntity(
-                feedQueryRepository
-                        .feedCommentFindByFeedId(feedId, user, pageable)
+            feedQueryRepository
+                .feedCommentFindByFeedId(feedId, user, pageable)
         );
     }
 

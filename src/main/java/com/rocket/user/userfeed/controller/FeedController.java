@@ -267,7 +267,6 @@ public class FeedController {
         , @PathVariable("commentId") String commentId) {
         User user = getUser();
         FeedComment feedComment = feedCommentService.getFeedComment(Long.valueOf(commentId));
-
         feedCommentLikeService.saveFeedCommentLike(user, feedComment);
 
         return success(null);

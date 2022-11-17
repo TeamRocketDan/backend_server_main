@@ -16,6 +16,8 @@ public enum UserFeedErrorCode {
     FEED_IMAGE_UPLOAD_COUNT_OVER(HttpStatus.BAD_REQUEST, "이미지는 최대 4장 업로드 가능합니다."),
     FEED_IMAGE_UPLOAD_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "이미지 업로드 실패"),
     FEED_CREATE_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "피드 생성에 실패했습니다."),
+    FEED_CONTENTS_LIMIT_2048(HttpStatus.INTERNAL_SERVER_ERROR, "내용은 최대 2048자 까지 작성 가능합니다."),
+
     FEED_UPDATE_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "피드 수정에 실패했습니다."),
     FEED_DELETE_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "피드 삭제에 실패했습니다."),
     FEED_ALREADY_FEED_LIKE(HttpStatus.BAD_REQUEST, "이미 '좋아요'가 된 피드입니다."),
@@ -23,6 +25,7 @@ public enum UserFeedErrorCode {
     FEED_LIKE_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "피드 좋아요에 실패했습니다"),
 
     FEED_COMMENT_CREATE_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "댓글 생성에 실패했습니다."),
+    FEED_COMMENT_LIMIT_1000(HttpStatus.INTERNAL_SERVER_ERROR, "댓글은 최대 1000자 까지 작성 가능합니다."),
     FEED_COMMENT_UPDATE_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "댓글 수정에 실패했습니다."),
     FEED_COMMENT_DELETE_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "댓글 삭제에 실패했습니다."),
     FEED_COMMENT_ALREADY_DELETE_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "댓글 삭제에 실패했습니다."),

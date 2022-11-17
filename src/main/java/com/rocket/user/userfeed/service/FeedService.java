@@ -129,7 +129,6 @@ public class FeedService {
 
         } catch (Exception e) {
             log.error("[FeedService.createFeed] ERROR {}", e);
-
             throw new UserFeedException(UserFeedErrorCode.FEED_CREATE_FAIL);
         }
         return new ModelMapper().map(newFeed, FeedDto.class);

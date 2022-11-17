@@ -1,6 +1,9 @@
 package com.rocket.user.userfeed.controller;
 
+import static com.rocket.error.type.UserFeedErrorCode.FEED_COMMENT_LIMIT_1000;
 import static com.rocket.error.type.UserFeedErrorCode.FEED_COMMENT_USER_NOT_MATCH;
+import static com.rocket.error.type.UserFeedErrorCode.FEED_CONTENTS_LIMIT_2048;
+import static com.rocket.error.type.UserFeedErrorCode.UPLOAD_AT_LEAST_ONE_IMAGE;
 import static com.rocket.utils.ApiUtils.success;
 
 import com.rocket.error.exception.UserFeedException;
@@ -26,7 +29,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 @RestController
@@ -55,7 +65,11 @@ public class FeedController {
         User user = getUser();
 
         if (multipartFiles == null || multipartFiles.isEmpty()) {
-            throw new UserFeedException(UserFeedErrorCode.UPLOAD_AT_LEAST_ONE_IMAGE);
+            throw new UserFeedException(UPLOAD_AT_LEAST_ONE_IMAGE);
+        }
+
+        if (feed.getContent().length() > 2048) {
+            throw new UserFeedException(FEED_CONTENTS_LIMIT_2048);
         }
 
         FeedDto newFeed = feedService.createFeed(user, feed, multipartFiles);
@@ -113,6 +127,8 @@ public class FeedController {
 
         if (!feed.getUser().getId().equals(user.getId())) {
             throw new UserFeedException(UserFeedErrorCode.FEED_USER_NOT_MATCH);
+        } else if (feed.getContent().length() > 2048) {
+            throw new UserFeedException(FEED_CONTENTS_LIMIT_2048);
         } else {
             feedService.updateFeed(feed.getId(), updateFeed);
         }
@@ -152,6 +168,10 @@ public class FeedController {
 
         if (feed == null) {
             throw new UserFeedException(UserFeedErrorCode.FEED_NOT_FOUND);
+        }
+
+        if (feedCommentDto.getComment().length() > 1000) {
+            throw new UserFeedException(FEED_COMMENT_LIMIT_1000);
         }
 
         FeedComment feedComment = feedCommentService.createFeedComment(user, feed, feedCommentDto);
@@ -208,6 +228,8 @@ public class FeedController {
 
         if (!feedComment.getUser().getId().equals(user.getId())) {
             throw new UserFeedException(UserFeedErrorCode.FEED_USER_NOT_MATCH);
+        } else if (updateFeedComment.getComment().length() > 1000) {
+            throw new UserFeedException(FEED_COMMENT_LIMIT_1000);
         } else {
             feedCommentService.updateFeedComment(Long.valueOf(commentId), updateFeedComment);
         }

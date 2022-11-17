@@ -75,7 +75,7 @@ public class FollowServiceImpl implements FollowService {
     }
 
     public boolean getIsFollow(User user, Feed feed) {
-        return followRepository.existsByFollowerAndFollowing(user, feed.getUser());
+        return followRepository.existsByFollowerAndFollowing(feed.getUser(), user);
     }
 
     @Override
